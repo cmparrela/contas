@@ -17,16 +17,25 @@ const config: Config = {
           hover: 'var(--color-primary-hover)',
           soft: 'var(--color-primary-soft)',
         },
-        positive: 'var(--color-positive)',
-        warning: 'var(--color-warning)',
-        danger: 'var(--color-danger)',
+        positive: {
+          DEFAULT: 'var(--color-positive)',
+          soft: 'var(--color-positive-soft)',
+        },
+        warning: {
+          DEFAULT: 'var(--color-warning)',
+          soft: 'var(--color-warning-soft)',
+        },
+        danger: {
+          DEFAULT: 'var(--color-danger)',
+          soft: 'var(--color-danger-soft)',
+        },
       },
       fontFamily: {
         sans: ['var(--font-sans)', 'system-ui', 'sans-serif'],
       },
       borderRadius: {
-        xl: '0.875rem',
-        '2xl': '1.125rem',
+        xl: '0.75rem',
+        '2xl': '1rem',
       },
       boxShadow: {
         card: '0 1px 2px rgba(15, 23, 42, 0.04), 0 1px 3px rgba(15, 23, 42, 0.06)',

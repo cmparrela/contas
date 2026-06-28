@@ -6,43 +6,43 @@
    Design tokens
 ---------------------------------------------------------------------------- */
 :root {
-  --color-bg: #f4f5fb;
-  --color-surface: #ffffff;
-  --color-surface-muted: #f8fafc;
-  --color-text: #0b1120;
-  --color-text-muted: #64748b;
-  --color-border: #e6e8f0;
-  --color-primary: #4f46e5;
-  --color-primary-hover: #4338ca;
-  --color-primary-soft: rgba(79, 70, 229, 0.1);
-  --color-primary-ring: rgba(79, 70, 229, 0.35);
-  --color-primary-glow: rgba(79, 70, 229, 0.35);
-  --color-positive: #059669;
-  --color-positive-soft: rgba(5, 150, 105, 0.12);
-  --color-warning: #d97706;
-  --color-warning-soft: rgba(217, 119, 6, 0.12);
-  --color-danger: #dc2626;
-  --color-danger-soft: rgba(220, 38, 38, 0.1);
+  --color-bg:           #f0f4f8;
+  --color-surface:      #ffffff;
+  --color-surface-muted:#f8fbfd;
+  --color-text:         #0d1b2a;
+  --color-text-muted:   #637080;
+  --color-border:       #dce5ef;
+  --color-primary:      #0891b2;
+  --color-primary-hover:#0e7490;
+  --color-primary-soft: rgba(8, 145, 178, 0.10);
+  --color-primary-ring: rgba(8, 145, 178, 0.25);
+  --color-primary-glow: rgba(8, 145, 178, 0.20);
+  --color-positive:     #0d9488;
+  --color-positive-soft:rgba(13, 148, 136, 0.10);
+  --color-warning:      #b45309;
+  --color-warning-soft: rgba(180, 83, 9, 0.10);
+  --color-danger:       #be123c;
+  --color-danger-soft:  rgba(190, 18, 60, 0.10);
 }
 
 .dark {
-  --color-bg: #0b1120;
-  --color-surface: #131a2b;
-  --color-surface-muted: #1a2336;
-  --color-text: #f1f5f9;
-  --color-text-muted: #94a3b8;
-  --color-border: #283449;
-  --color-primary: #6366f1;
-  --color-primary-hover: #818cf8;
-  --color-primary-soft: rgba(99, 102, 241, 0.16);
-  --color-primary-ring: rgba(99, 102, 241, 0.45);
-  --color-primary-glow: rgba(99, 102, 241, 0.4);
-  --color-positive: #34d399;
-  --color-positive-soft: rgba(52, 211, 153, 0.16);
-  --color-warning: #fbbf24;
-  --color-warning-soft: rgba(251, 191, 36, 0.16);
-  --color-danger: #f87171;
-  --color-danger-soft: rgba(248, 113, 113, 0.16);
+  --color-bg:           #0d1b2a;
+  --color-surface:      #111f2e;
+  --color-surface-muted:#172535;
+  --color-text:         #e8f1f8;
+  --color-text-muted:   #8aa0b5;
+  --color-border:       #1e3044;
+  --color-primary:      #38bdf8;
+  --color-primary-hover:#7dd3fc;
+  --color-primary-soft: rgba(56, 189, 248, 0.12);
+  --color-primary-ring: rgba(56, 189, 248, 0.35);
+  --color-primary-glow: rgba(56, 189, 248, 0.30);
+  --color-positive:     #2dd4bf;
+  --color-positive-soft:rgba(45, 212, 191, 0.12);
+  --color-warning:      #fbbf24;
+  --color-warning-soft: rgba(251, 191, 36, 0.12);
+  --color-danger:       #fb7185;
+  --color-danger-soft:  rgba(251, 113, 133, 0.12);
 }
 
 /* ----------------------------------------------------------------------------

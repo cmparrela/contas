@@ -52,7 +52,11 @@ router.post('/', requireAuth, validateBody(createBillSchema), async (req, res, n
       sharedWithUserId: body.sharedWithUserId ? new ObjectId(body.sharedWithUserId) : undefined,
       splitType: body.splitType,
       customSplitAmount: body.customSplitAmount,
-      payerUserId: body.payerUserId ? new ObjectId(body.payerUserId) : undefined,
+      payerUserId: body.payerUserId
+        ? new ObjectId(body.payerUserId)
+        : body.isShared
+          ? userId
+          : undefined,
       active: true,
       order: body.order,
     });
