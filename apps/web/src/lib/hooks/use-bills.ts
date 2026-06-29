@@ -1,10 +1,10 @@
 'use client';
 
 import { useAuth } from '@clerk/nextjs';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { CreateBillInput, UpdateBillInput } from '@contas/shared';
-import { requireToken } from '../require-token';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { createBill, deleteBill, listBills, updateBill } from '../api/bills';
+import { requireToken } from '../require-token';
 
 export function useBills() {
   const { getToken } = useAuth();
@@ -30,6 +30,7 @@ export function useCreateBill() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['bills'] });
+      qc.invalidateQueries({ queryKey: ['month'] });
     },
   });
 }
@@ -45,6 +46,7 @@ export function useUpdateBill() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['bills'] });
+      qc.invalidateQueries({ queryKey: ['month'] });
     },
   });
 }
@@ -60,6 +62,7 @@ export function useDeleteBill() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['bills'] });
+      qc.invalidateQueries({ queryKey: ['month'] });
     },
   });
 }
