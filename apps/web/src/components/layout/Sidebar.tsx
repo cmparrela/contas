@@ -6,7 +6,6 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 const NAV_LINKS = [
-  { href: '/', label: 'Meses', exact: true },
   { href: '/contas', label: 'Contas' },
   { href: '/conexoes', label: 'Conexões' },
 ];
@@ -27,7 +26,7 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
       <div className="flex flex-1 flex-col gap-1 px-3 py-5">
         <div className="mb-4 flex items-center justify-between px-2">
           <Link
-            href="/"
+            href="/contas"
             onClick={onClose}
             className="text-xs font-black uppercase tracking-[0.12em] text-primary"
           >
@@ -43,10 +42,8 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
         </div>
 
         <nav className="flex flex-col gap-0.5">
-          {NAV_LINKS.map(({ href, label, exact }) => {
-            const active = exact
-              ? pathname === href
-              : pathname === href || pathname.startsWith(`${href}/`);
+          {NAV_LINKS.map(({ href, label }) => {
+            const active = pathname === href || pathname.startsWith(`${href}/`);
             return (
               <Link
                 key={href}

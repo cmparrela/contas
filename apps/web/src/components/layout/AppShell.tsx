@@ -26,15 +26,18 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
       {/* Mobile overlay */}
       {sidebarOpen && (
-        <div className="fixed inset-0 z-20 bg-black/40 md:hidden" onClick={closeSidebar} />
+        <button
+          type="button"
+          className="fixed inset-0 z-20 bg-black/40 md:hidden"
+          aria-label="Fechar menu"
+          onClick={closeSidebar}
+        />
       )}
 
       <Sidebar isOpen={sidebarOpen} onClose={closeSidebar} />
 
       <main className="min-h-screen pt-12 md:ml-48 md:pt-0">
-        <div className="mx-auto max-w-2xl px-6 py-8 md:px-10 md:py-10">
-          {children}
-        </div>
+        <div className="mx-auto max-w-2xl px-6 py-8 md:px-10 md:py-10">{children}</div>
       </main>
     </div>
   );
