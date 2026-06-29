@@ -6,6 +6,7 @@ import { Sidebar } from './Sidebar';
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const closeSidebar = () => setSidebarOpen(false);
 
   return (
     <div className="min-h-screen bg-background">
@@ -25,13 +26,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
       {/* Mobile overlay */}
       {sidebarOpen && (
-        <div
-          className="fixed inset-0 z-20 bg-black/40 md:hidden"
-          onClick={() => setSidebarOpen(false)}
-        />
+        <div className="fixed inset-0 z-20 bg-black/40 md:hidden" onClick={closeSidebar} />
       )}
 
-      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      <Sidebar isOpen={sidebarOpen} onClose={closeSidebar} />
 
       <main className="min-h-screen pt-12 md:ml-48 md:pt-0">
         <div className="mx-auto max-w-2xl px-6 py-8 md:px-10 md:py-10">

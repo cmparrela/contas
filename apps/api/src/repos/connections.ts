@@ -33,7 +33,7 @@ export async function listPendingForUser(userId: ObjectId): Promise<DbConnection
 
 export async function listSentByUser(userId: ObjectId): Promise<DbConnection[]> {
   const col = await getCollection();
-  return col.find({ fromUserId: userId }).toArray();
+  return col.find({ fromUserId: userId, status: 'pending' }).toArray();
 }
 
 export async function findById(id: ObjectId): Promise<DbConnection | null> {

@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 const NAV_LINKS = [
-  { href: '/', label: 'Meses' },
+  { href: '/', label: 'Meses', exact: true },
   { href: '/contas', label: 'Contas' },
   { href: '/conexoes', label: 'Conexões' },
 ];
@@ -43,9 +43,10 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
         </div>
 
         <nav className="flex flex-col gap-0.5">
-          {NAV_LINKS.map(({ href, label }) => {
-            const active =
-              href === '/' ? pathname === '/' : pathname === href || pathname.startsWith(`${href}/`);
+          {NAV_LINKS.map(({ href, label, exact }) => {
+            const active = exact
+              ? pathname === href
+              : pathname === href || pathname.startsWith(`${href}/`);
             return (
               <Link
                 key={href}

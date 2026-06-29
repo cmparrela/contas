@@ -1,5 +1,6 @@
 import type { Collection, ObjectId } from 'mongodb';
 import { getDb } from '../db/mongo';
+import { buildMongoUpdate } from '../db/utils';
 
 export interface DbBill {
   _id: ObjectId;
@@ -63,16 +64,17 @@ export async function update(
   patch: Partial<Omit<DbBill, '_id' | 'userId' | 'createdAt'>>,
 ): Promise<DbBill | null> {
   const col = await getCollection();
-  const set: Record<string, unknown> = {};
-  const unset: Record<string, 1> = {};
-  for (const [key, value] of Object.entries(patch)) {
-    if (value === null || value === undefined) unset[key] = 1;
-    else set[key] = value;
-  }
-  const updateOp: Record<string, unknown> = {};
-  if (Object.keys(set).length) updateOp.$set = set;
-  if (Object.keys(unset).length) updateOp.$unset = unset;
-  return col.findOneAndUpdate({ _id: id, userId }, updateOp, { returnDocument: 'after' });
+  return col.findOneAndUpdate(
+    { _id: id, userId },
+    buildMongoUpdate(patch as Record<string, unknown>),
+    { returnDocument: 'after' },
+  );
+}
+
+export async function findByIds(ids: ObjectId[]): Promise<DbBill[]> {
+  if (ids.length === 0) return [];
+  const col = await getCollection();
+  return col.find({ _id: { $in: ids } }).toArray();
 }
 
 export async function softDelete(id: ObjectId, userId: ObjectId): Promise<DbBill | null> {

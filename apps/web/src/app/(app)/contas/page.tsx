@@ -3,6 +3,7 @@
 import type { BillResponse, CreateBillInput, UpdateBillInput } from '@contas/shared';
 import { Pencil, Plus, Share2, Trash2, X } from 'lucide-react';
 import { useState } from 'react';
+import { formatCurrency } from '@/lib/format';
 import { useConnections } from '@/lib/hooks/use-connections';
 import { useBills, useCreateBill, useDeleteBill, useUpdateBill } from '@/lib/hooks/use-bills';
 
@@ -39,11 +40,6 @@ function billToForm(b: BillResponse): FormData {
     splitType: b.splitType ?? 'half',
     customSplitAmount: b.customSplitAmount != null ? String(b.customSplitAmount) : '',
   };
-}
-
-function formatCurrency(value: number | undefined) {
-  if (value == null) return '—';
-  return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
 }
 
 export default function ContasPage() {

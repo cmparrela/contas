@@ -3,7 +3,13 @@
 import { useAuth } from '@clerk/nextjs';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { InviteConnectionInput } from '@contas/shared';
-import { acceptConnection, inviteConnection, listConnections, rejectConnection } from '../api/connections';
+import { requireToken } from '../require-token';
+import {
+  acceptConnection,
+  inviteConnection,
+  listConnections,
+  rejectConnection,
+} from '../api/connections';
 
 export function useConnections() {
   const { getToken } = useAuth();
@@ -11,8 +17,7 @@ export function useConnections() {
   return useQuery({
     queryKey: ['connections'] as const,
     queryFn: async () => {
-      const token = await getToken();
-      if (!token) throw new Error('Not authenticated');
+      const token = await requireToken(getToken);
       return listConnections(token);
     },
     staleTime: 5 * 60 * 1000,
@@ -25,8 +30,7 @@ export function useInviteConnection() {
 
   return useMutation({
     mutationFn: async (body: InviteConnectionInput) => {
-      const token = await getToken();
-      if (!token) throw new Error('Not authenticated');
+      const token = await requireToken(getToken);
       return inviteConnection(token, body);
     },
     onSuccess: () => {
@@ -41,8 +45,7 @@ export function useAcceptConnection() {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      const token = await getToken();
-      if (!token) throw new Error('Not authenticated');
+      const token = await requireToken(getToken);
       return acceptConnection(token, id);
     },
     onSuccess: () => {
@@ -57,8 +60,7 @@ export function useRejectConnection() {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      const token = await getToken();
-      if (!token) throw new Error('Not authenticated');
+      const token = await requireToken(getToken);
       return rejectConnection(token, id);
     },
     onSuccess: () => {

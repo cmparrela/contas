@@ -1,37 +1,26 @@
 import { updateMonthlyBillSchema } from '@contas/shared';
+import type { RequestHandler } from 'express';
 import { Router } from 'express';
 import { ObjectId } from 'mongodb';
+import { parseId } from '../lib/parse-id';
 import { requireAuth } from '../middleware/requireAuth';
 import { validateBody } from '../middleware/validate';
 import * as billsRepo from '../repos/bills';
 import * as monthsRepo from '../repos/months';
+import type { DbMonthlyBill } from '../repos/months';
 
 const router = Router();
 
-function parseId(param: string): ObjectId | null {
-  try {
-    return new ObjectId(param);
-  } catch {
-    return null;
-  }
-}
-
-/**
- * Auto-creates MonthlyBill documents from all active bills if this is the
- * first access for the given month/year. This replaces the manual "reset"
- * the user did in their old spreadsheet.
- */
 async function ensureMonthInitialized(
   userId: ObjectId,
   year: number,
   month: number,
-): Promise<void> {
+): Promise<DbMonthlyBill[]> {
   const existing = await monthsRepo.listByUserAndMonth(userId, year, month);
-  if (existing.length > 0) return;
+  if (existing.length > 0) return existing;
 
-  // First access: create instances from all active bills
   const activeBills = await billsRepo.listActiveByUser(userId);
-  if (activeBills.length === 0) return;
+  if (activeBills.length === 0) return [];
 
   const docs: Parameters<typeof monthsRepo.insertMany>[0] = activeBills.map((bill) => {
     const base = {
@@ -39,18 +28,17 @@ async function ensureMonthInitialized(
       userId,
       year,
       month,
-      amount: bill.amount, // carry over fixed amount; variable bills leave it undefined
+      amount: bill.amount,
     };
 
     if (!bill.isShared) return base;
 
-    // For shared bills, calculate split amounts
-    const otherAmount =
-      bill.splitType === 'custom' && bill.customSplitAmount !== undefined
-        ? bill.customSplitAmount
-        : bill.amount !== undefined
-          ? bill.amount / 2
-          : 0;
+    let otherAmount: number;
+    if (bill.splitType === 'custom' && bill.customSplitAmount !== undefined) {
+      otherAmount = bill.customSplitAmount;
+    } else {
+      otherAmount = bill.amount !== undefined ? bill.amount / 2 : 0;
+    }
 
     return {
       ...base,
@@ -61,7 +49,40 @@ async function ensureMonthInitialized(
     };
   });
 
-  await monthsRepo.insertMany(docs);
+  return monthsRepo.insertMany(docs);
+}
+
+function makeSharedHandler(
+  repoMethod: (
+    billId: ObjectId,
+    userId: ObjectId,
+    year: number,
+    month: number,
+  ) => Promise<DbMonthlyBill | null>,
+): RequestHandler {
+  return async (req, res, next) => {
+    try {
+      const userId = new ObjectId(req.user!.id);
+      const year = parseInt(req.params.year as string, 10);
+      const month = parseInt(req.params.month as string, 10);
+      const billId = parseId(req.params.billId as string);
+
+      if (!billId || isNaN(year) || isNaN(month)) {
+        res.status(404).json({ error: 'Not found' });
+        return;
+      }
+
+      const updated = await repoMethod(billId, userId, year, month);
+      if (!updated) {
+        res.status(404).json({ error: 'Not found' });
+        return;
+      }
+
+      res.json({ monthlyBill: updated });
+    } catch (err) {
+      next(err);
+    }
+  };
 }
 
 // GET /api/months/:year/:month
@@ -76,14 +97,14 @@ router.get('/:year/:month', requireAuth, async (req, res, next) => {
       return;
     }
 
-    await ensureMonthInitialized(userId, year, month);
+    const monthlyBills = await ensureMonthInitialized(userId, year, month);
 
-    const monthlyBills = await monthsRepo.listByUserAndMonth(userId, year, month);
-
-    // Join with bill data
-    const billIds = [...new Set(monthlyBills.map((mb) => mb.billId.toHexString()))];
-    const bills = await Promise.all(billIds.map((id) => billsRepo.findById(new ObjectId(id))));
-    const billMap = new Map(bills.filter(Boolean).map((b) => [b!._id.toHexString(), b!]));
+    // Join with bill data using a single $in query
+    const uniqueBillIds = [
+      ...new Set(monthlyBills.map((mb) => mb.billId.toHexString())),
+    ].map((id) => new ObjectId(id));
+    const bills = await billsRepo.findByIds(uniqueBillIds);
+    const billMap = new Map(bills.map((b) => [b._id.toHexString(), b]));
 
     const result = monthlyBills.map((mb) => ({
       ...mb,
@@ -133,54 +154,16 @@ router.put(
   },
 );
 
-// POST /api/months/:year/:month/:billId/shared-paid — other user marks their portion as paid
-router.post('/:year/:month/:billId/shared-paid', requireAuth, async (req, res, next) => {
-  try {
-    const userId = new ObjectId(req.user!.id);
-    const year = parseInt(req.params.year as string, 10);
-    const month = parseInt(req.params.month as string, 10);
-    const billId = parseId(req.params.billId as string);
+router.post(
+  '/:year/:month/:billId/shared-paid',
+  requireAuth,
+  makeSharedHandler(monthsRepo.updateSharedPaid),
+);
 
-    if (!billId || isNaN(year) || isNaN(month)) {
-      res.status(404).json({ error: 'Not found' });
-      return;
-    }
-
-    const updated = await monthsRepo.updateSharedPaid(billId, userId, year, month);
-    if (!updated) {
-      res.status(404).json({ error: 'Not found' });
-      return;
-    }
-
-    res.json({ monthlyBill: updated });
-  } catch (err) {
-    next(err);
-  }
-});
-
-// POST /api/months/:year/:month/:billId/shared-confirm — payer confirms receiving the PIX
-router.post('/:year/:month/:billId/shared-confirm', requireAuth, async (req, res, next) => {
-  try {
-    const userId = new ObjectId(req.user!.id);
-    const year = parseInt(req.params.year as string, 10);
-    const month = parseInt(req.params.month as string, 10);
-    const billId = parseId(req.params.billId as string);
-
-    if (!billId || isNaN(year) || isNaN(month)) {
-      res.status(404).json({ error: 'Not found' });
-      return;
-    }
-
-    const updated = await monthsRepo.updateSharedConfirm(billId, userId, year, month);
-    if (!updated) {
-      res.status(404).json({ error: 'Not found' });
-      return;
-    }
-
-    res.json({ monthlyBill: updated });
-  } catch (err) {
-    next(err);
-  }
-});
+router.post(
+  '/:year/:month/:billId/shared-confirm',
+  requireAuth,
+  makeSharedHandler(monthsRepo.updateSharedConfirm),
+);
 
 export default router;

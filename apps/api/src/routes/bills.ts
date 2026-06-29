@@ -1,19 +1,12 @@
 import { createBillSchema, updateBillSchema } from '@contas/shared';
 import { Router } from 'express';
 import { ObjectId } from 'mongodb';
+import { parseId } from '../lib/parse-id';
 import { requireAuth } from '../middleware/requireAuth';
 import { validateBody } from '../middleware/validate';
 import * as billsRepo from '../repos/bills';
 
 const router = Router();
-
-function parseId(param: string): ObjectId | null {
-  try {
-    return new ObjectId(param);
-  } catch {
-    return null;
-  }
-}
 
 // GET /api/bills — list active bills for the authenticated user
 router.get('/', requireAuth, async (req, res, next) => {

@@ -3,6 +3,7 @@
 import { useAuth } from '@clerk/nextjs';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { CreateBillInput, UpdateBillInput } from '@contas/shared';
+import { requireToken } from '../require-token';
 import { createBill, deleteBill, listBills, updateBill } from '../api/bills';
 
 export function useBills() {
@@ -11,8 +12,7 @@ export function useBills() {
   return useQuery({
     queryKey: ['bills'] as const,
     queryFn: async () => {
-      const token = await getToken();
-      if (!token) throw new Error('Not authenticated');
+      const token = await requireToken(getToken);
       return listBills(token);
     },
     staleTime: 5 * 60 * 1000,
@@ -25,8 +25,7 @@ export function useCreateBill() {
 
   return useMutation({
     mutationFn: async (body: CreateBillInput) => {
-      const token = await getToken();
-      if (!token) throw new Error('Not authenticated');
+      const token = await requireToken(getToken);
       return createBill(token, body);
     },
     onSuccess: () => {
@@ -41,8 +40,7 @@ export function useUpdateBill() {
 
   return useMutation({
     mutationFn: async ({ id, body }: { id: string; body: UpdateBillInput }) => {
-      const token = await getToken();
-      if (!token) throw new Error('Not authenticated');
+      const token = await requireToken(getToken);
       return updateBill(token, id, body);
     },
     onSuccess: () => {
@@ -57,8 +55,7 @@ export function useDeleteBill() {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      const token = await getToken();
-      if (!token) throw new Error('Not authenticated');
+      const token = await requireToken(getToken);
       return deleteBill(token, id);
     },
     onSuccess: () => {

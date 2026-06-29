@@ -29,6 +29,7 @@ export default function ConexoesPage() {
     try {
       await inviteConnection.mutateAsync({ email: email.trim() });
       setEmail('');
+      setInviteError('');
       setShowForm(false);
     } catch {
       setInviteError('Usuário não encontrado. Peça para ele criar a conta primeiro.');

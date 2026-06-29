@@ -3,12 +3,8 @@
 import { useAuth } from '@clerk/nextjs';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { UpdateMonthlyBillInput } from '@contas/shared';
-import {
-  confirmSharedPayment,
-  getMonth,
-  markSharedPaid,
-  updateMonthlyBill,
-} from '../api/months';
+import { requireToken } from '../require-token';
+import { confirmSharedPayment, getMonth, markSharedPaid, updateMonthlyBill } from '../api/months';
 
 export function useMonth(year: number, month: number) {
   const { getToken } = useAuth();
@@ -16,8 +12,7 @@ export function useMonth(year: number, month: number) {
   return useQuery({
     queryKey: ['month', year, month] as const,
     queryFn: async () => {
-      const token = await getToken();
-      if (!token) throw new Error('Not authenticated');
+      const token = await requireToken(getToken);
       return getMonth(token, year, month);
     },
     staleTime: 2 * 60 * 1000,
@@ -30,8 +25,7 @@ export function useUpdateMonthlyBill(year: number, month: number) {
 
   return useMutation({
     mutationFn: async ({ billId, body }: { billId: string; body: UpdateMonthlyBillInput }) => {
-      const token = await getToken();
-      if (!token) throw new Error('Not authenticated');
+      const token = await requireToken(getToken);
       return updateMonthlyBill(token, year, month, billId, body);
     },
     onSuccess: () => {
@@ -46,8 +40,7 @@ export function useMarkSharedPaid(year: number, month: number) {
 
   return useMutation({
     mutationFn: async (billId: string) => {
-      const token = await getToken();
-      if (!token) throw new Error('Not authenticated');
+      const token = await requireToken(getToken);
       return markSharedPaid(token, year, month, billId);
     },
     onSuccess: () => {
@@ -62,8 +55,7 @@ export function useConfirmSharedPayment(year: number, month: number) {
 
   return useMutation({
     mutationFn: async (billId: string) => {
-      const token = await getToken();
-      if (!token) throw new Error('Not authenticated');
+      const token = await requireToken(getToken);
       return confirmSharedPayment(token, year, month, billId);
     },
     onSuccess: () => {

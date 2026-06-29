@@ -1,5 +1,6 @@
 import type { Collection, ObjectId } from 'mongodb';
 import { getDb } from '../db/mongo';
+import { buildMongoUpdate } from '../db/utils';
 
 export interface DbMonthlyBillSharedData {
   otherUserId: ObjectId;
@@ -56,16 +57,11 @@ export async function update(
   patch: Partial<Omit<DbMonthlyBill, '_id' | 'billId' | 'userId' | 'year' | 'month'>>,
 ): Promise<DbMonthlyBill | null> {
   const col = await getCollection();
-  const set: Record<string, unknown> = {};
-  const unset: Record<string, 1> = {};
-  for (const [key, value] of Object.entries(patch)) {
-    if (value === null || value === undefined) unset[key] = 1;
-    else set[key] = value;
-  }
-  const updateOp: Record<string, unknown> = {};
-  if (Object.keys(set).length) updateOp.$set = set;
-  if (Object.keys(unset).length) updateOp.$unset = unset;
-  return col.findOneAndUpdate({ _id: id, userId }, updateOp, { returnDocument: 'after' });
+  return col.findOneAndUpdate(
+    { _id: id, userId },
+    buildMongoUpdate(patch as Record<string, unknown>),
+    { returnDocument: 'after' },
+  );
 }
 
 export async function updateSharedPaid(

@@ -3,16 +3,8 @@
 import { CheckCircle2, ChevronLeft, ChevronRight, Circle, Share2 } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
+import { capitalize, formatCurrency } from '@/lib/format';
 import { useMonth } from '@/lib/hooks/use-month';
-
-function formatCurrency(value: number | undefined): string {
-  if (value === undefined) return '—';
-  return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
-}
-
-function capitalize(str: string) {
-  return str.charAt(0).toUpperCase() + str.slice(1);
-}
 
 function MesesContent() {
   const searchParams = useSearchParams();
@@ -62,9 +54,17 @@ function MesesContent() {
   const sharedBills = monthlyBills.filter((mb) => mb.bill?.isShared);
 
   const totalAmount = monthlyBills.reduce((sum, mb) => sum + (mb.amount ?? 0), 0);
-  const totalPaid = monthlyBills.filter((mb) => mb.paidAt).reduce((sum, mb) => sum + (mb.amount ?? 0), 0);
+  const { totalPaid, paidCount } = monthlyBills.reduce(
+    (acc, mb) => {
+      if (mb.paidAt) {
+        acc.totalPaid += mb.amount ?? 0;
+        acc.paidCount += 1;
+      }
+      return acc;
+    },
+    { totalPaid: 0, paidCount: 0 },
+  );
   const totalToPay = totalAmount - totalPaid;
-  const paidCount = monthlyBills.filter((mb) => mb.paidAt).length;
 
   return (
     <div className="flex animate-[fade-in_0.35s_ease_both] flex-col gap-8">
