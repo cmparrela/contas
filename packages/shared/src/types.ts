@@ -16,6 +16,11 @@ export interface User {
 
 export type SplitType = 'half' | 'custom';
 
+export interface ExternalContact {
+  name: string;
+  phone?: string; // used to generate wa.me links
+}
+
 export interface BillResponse {
   _id: string;
   userId: string;
@@ -25,6 +30,7 @@ export interface BillResponse {
   notes?: string; // free-form notes
   isShared: boolean;
   sharedWithUserId?: string; // connected user to split with
+  externalContact?: ExternalContact; // non-user contact (name + optional phone)
   splitType?: SplitType;
   customSplitAmount?: number; // what the OTHER person pays
   payerUserId?: string; // who pays the full bill (collects from other)

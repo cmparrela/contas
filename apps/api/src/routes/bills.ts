@@ -30,6 +30,7 @@ router.post('/', requireAuth, validateBody(createBillSchema), async (req, res, n
       notes?: string;
       isShared: boolean;
       sharedWithUserId?: string;
+      externalContact?: { name: string; phone?: string };
       splitType?: 'half' | 'custom';
       customSplitAmount?: number;
       payerUserId?: string;
@@ -43,6 +44,7 @@ router.post('/', requireAuth, validateBody(createBillSchema), async (req, res, n
       notes: body.notes,
       isShared: body.isShared,
       sharedWithUserId: body.sharedWithUserId ? new ObjectId(body.sharedWithUserId) : undefined,
+      externalContact: body.externalContact,
       splitType: body.splitType,
       customSplitAmount: body.customSplitAmount,
       payerUserId: body.payerUserId

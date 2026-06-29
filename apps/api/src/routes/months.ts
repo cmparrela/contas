@@ -6,50 +6,48 @@ import { parseId } from '../lib/parse-id';
 import { requireAuth } from '../middleware/requireAuth';
 import { validateBody } from '../middleware/validate';
 import * as billsRepo from '../repos/bills';
-import * as monthsRepo from '../repos/months';
 import type { DbMonthlyBill } from '../repos/months';
+import * as monthsRepo from '../repos/months';
 
 const router = Router();
+
+function buildMonthlyDoc(
+  bill: Awaited<ReturnType<typeof billsRepo.listActiveByUser>>[number],
+  userId: ObjectId,
+  year: number,
+  month: number,
+): Parameters<typeof monthsRepo.insertMany>[0][number] {
+  const base = { billId: bill._id, userId, year, month, amount: bill.amount };
+  if (!bill.isShared || !bill.sharedWithUserId) return base;
+
+  const otherAmount =
+    bill.splitType === 'custom' && bill.customSplitAmount !== undefined
+      ? bill.customSplitAmount
+      : (bill.amount ?? 0) / 2;
+
+  return { ...base, sharedData: { otherUserId: bill.sharedWithUserId, otherAmount } };
+}
 
 async function ensureMonthInitialized(
   userId: ObjectId,
   year: number,
   month: number,
 ): Promise<DbMonthlyBill[]> {
-  const existing = await monthsRepo.listByUserAndMonth(userId, year, month);
-  if (existing.length > 0) return existing;
+  const [existing, activeBills] = await Promise.all([
+    monthsRepo.listByUserAndMonth(userId, year, month),
+    billsRepo.listActiveByUser(userId),
+  ]);
 
-  const activeBills = await billsRepo.listActiveByUser(userId);
-  if (activeBills.length === 0) return [];
+  if (activeBills.length === 0) return existing;
 
-  const docs: Parameters<typeof monthsRepo.insertMany>[0] = activeBills.map((bill) => {
-    const base = {
-      billId: bill._id,
-      userId,
-      year,
-      month,
-      amount: bill.amount,
-    };
+  const coveredIds = new Set(existing.map((mb) => mb.billId.toHexString()));
+  const missing = activeBills.filter((b) => !coveredIds.has(b._id.toHexString()));
 
-    if (!bill.isShared) return base;
+  if (missing.length === 0) return existing;
 
-    let otherAmount: number;
-    if (bill.splitType === 'custom' && bill.customSplitAmount !== undefined) {
-      otherAmount = bill.customSplitAmount;
-    } else {
-      otherAmount = bill.amount !== undefined ? bill.amount / 2 : 0;
-    }
-
-    return {
-      ...base,
-      sharedData: {
-        otherUserId: bill.sharedWithUserId!,
-        otherAmount,
-      },
-    };
-  });
-
-  return monthsRepo.insertMany(docs);
+  const newDocs = missing.map((bill) => buildMonthlyDoc(bill, userId, year, month));
+  const created = await monthsRepo.insertMany(newDocs);
+  return [...existing, ...created];
 }
 
 function makeSharedHandler(
@@ -67,7 +65,7 @@ function makeSharedHandler(
       const month = parseInt(req.params.month as string, 10);
       const billId = parseId(req.params.billId as string);
 
-      if (!billId || isNaN(year) || isNaN(month)) {
+      if (!billId || Number.isNaN(year) || Number.isNaN(month)) {
         res.status(400).json({ error: 'Invalid parameters' });
         return;
       }
@@ -92,7 +90,7 @@ router.get('/:year/:month', requireAuth, async (req, res, next) => {
     const year = parseInt(req.params.year as string, 10);
     const month = parseInt(req.params.month as string, 10);
 
-    if (isNaN(year) || isNaN(month) || month < 1 || month > 12) {
+    if (Number.isNaN(year) || Number.isNaN(month) || month < 1 || month > 12) {
       res.status(400).json({ error: 'Invalid year or month' });
       return;
     }
@@ -100,9 +98,9 @@ router.get('/:year/:month', requireAuth, async (req, res, next) => {
     const monthlyBills = await ensureMonthInitialized(userId, year, month);
 
     // Join with bill data using a single $in query
-    const uniqueBillIds = [
-      ...new Set(monthlyBills.map((mb) => mb.billId.toHexString())),
-    ].map((id) => new ObjectId(id));
+    const uniqueBillIds = [...new Set(monthlyBills.map((mb) => mb.billId.toHexString()))].map(
+      (id) => new ObjectId(id),
+    );
     const bills = await billsRepo.findByIds(uniqueBillIds);
     const billMap = new Map(bills.map((b) => [b._id.toHexString(), b]));
 
@@ -129,7 +127,7 @@ router.put(
       const month = parseInt(req.params.month as string, 10);
       const billId = parseId(req.params.billId as string);
 
-      if (!billId || isNaN(year) || isNaN(month)) {
+      if (!billId || Number.isNaN(year) || Number.isNaN(month)) {
         res.status(400).json({ error: 'Invalid parameters' });
         return;
       }

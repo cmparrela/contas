@@ -11,6 +11,7 @@ export interface DbBill {
   notes?: string;
   isShared: boolean;
   sharedWithUserId?: ObjectId;
+  externalContact?: { name: string; phone?: string };
   splitType?: 'half' | 'custom';
   customSplitAmount?: number;
   payerUserId?: ObjectId;
