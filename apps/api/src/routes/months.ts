@@ -68,7 +68,7 @@ function makeSharedHandler(
       const billId = parseId(req.params.billId as string);
 
       if (!billId || isNaN(year) || isNaN(month)) {
-        res.status(404).json({ error: 'Not found' });
+        res.status(400).json({ error: 'Invalid parameters' });
         return;
       }
 
@@ -130,7 +130,7 @@ router.put(
       const billId = parseId(req.params.billId as string);
 
       if (!billId || isNaN(year) || isNaN(month)) {
-        res.status(404).json({ error: 'Not found' });
+        res.status(400).json({ error: 'Invalid parameters' });
         return;
       }
 

@@ -66,7 +66,7 @@ router.put('/:id', requireAuth, validateBody(updateBillSchema), async (req, res,
     const userId = new ObjectId(req.user!.id);
     const id = parseId(req.params.id as string);
     if (!id) {
-      res.status(404).json({ error: 'Not found' });
+      res.status(400).json({ error: 'Invalid ID' });
       return;
     }
 
@@ -99,7 +99,7 @@ router.delete('/:id', requireAuth, async (req, res, next) => {
     const userId = new ObjectId(req.user!.id);
     const id = parseId(req.params.id as string);
     if (!id) {
-      res.status(404).json({ error: 'Not found' });
+      res.status(400).json({ error: 'Invalid ID' });
       return;
     }
 

@@ -3,6 +3,7 @@
 import type { BillResponse, CreateBillInput, UpdateBillInput } from '@contas/shared';
 import { Pencil, Plus, Share2, Trash2, X } from 'lucide-react';
 import { useState } from 'react';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { formatCurrency } from '@/lib/format';
 import { useConnections } from '@/lib/hooks/use-connections';
 import { useBills, useCreateBill, useDeleteBill, useUpdateBill } from '@/lib/hooks/use-bills';
@@ -52,6 +53,7 @@ export default function ContasPage() {
   const [form, setForm] = useState<FormData>(EMPTY_FORM);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState<{ id: string; name: string } | null>(null);
 
   const acceptedConnections = connectionsData?.accepted ?? [];
   const bills = data ?? [];
@@ -105,15 +107,29 @@ export default function ContasPage() {
     closeForm();
   }
 
-  async function handleDelete(id: string, name: string) {
-    if (!window.confirm(`Remover "${name}"?`)) return;
-    await deleteBill.mutateAsync(id);
+  function handleDelete(id: string, name: string) {
+    setConfirmDelete({ id, name });
+  }
+
+  async function executeDelete() {
+    if (!confirmDelete) return;
+    await deleteBill.mutateAsync(confirmDelete.id);
+    setConfirmDelete(null);
   }
 
   const isPending = createBill.isPending || updateBill.isPending;
 
   return (
     <div className="flex flex-col gap-8">
+      {confirmDelete && (
+        <ConfirmDialog
+          message={`Remover "${confirmDelete.name}"?`}
+          confirmLabel="Remover"
+          onConfirm={executeDelete}
+          onCancel={() => setConfirmDelete(null)}
+        />
+      )}
+
       <header className="flex items-center justify-between gap-4">
         <div>
           <h1 className="page-title">Contas</h1>
