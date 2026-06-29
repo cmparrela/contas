@@ -71,8 +71,11 @@ export default function ConexoesPage() {
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-medium text-muted">E-mail</label>
+            <label htmlFor="invite-email" className="text-xs font-medium text-muted">
+              E-mail
+            </label>
             <input
+              id="invite-email"
               className="input"
               type="email"
               placeholder="email@exemplo.com"
@@ -193,22 +196,20 @@ export default function ConexoesPage() {
         </section>
       )}
 
-      {!isLoading && accepted.length === 0 && pending.length === 0 && sent.length === 0 && !showForm && (
-        <div className="card p-10 text-center">
-          <p className="text-muted">Nenhuma conexão ainda.</p>
-          <p className="mt-1 text-sm text-muted">
-            Convide alguém para dividir contas juntos.
-          </p>
-          <button
-            type="button"
-            onClick={() => setShowForm(true)}
-            className="btn-primary mt-4"
-          >
-            <Mail size={16} />
-            Convidar alguém
-          </button>
-        </div>
-      )}
+      {!isLoading &&
+        accepted.length === 0 &&
+        pending.length === 0 &&
+        sent.length === 0 &&
+        !showForm && (
+          <div className="card p-10 text-center">
+            <p className="text-muted">Nenhuma conexão ainda.</p>
+            <p className="mt-1 text-sm text-muted">Convide alguém para dividir contas juntos.</p>
+            <button type="button" onClick={() => setShowForm(true)} className="btn-primary mt-4">
+              <Mail size={16} />
+              Convidar alguém
+            </button>
+          </div>
+        )}
     </div>
   );
 }

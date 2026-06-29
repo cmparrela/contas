@@ -1,15 +1,15 @@
 'use client';
 
 import { useAuth } from '@clerk/nextjs';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { InviteConnectionInput } from '@contas/shared';
-import { requireToken } from '../require-token';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   acceptConnection,
   inviteConnection,
   listConnections,
   rejectConnection,
 } from '../api/connections';
+import { requireToken } from '../require-token';
 
 export function useConnections() {
   const { getToken } = useAuth();

@@ -7,9 +7,7 @@ export async function ensureAllIndexes(): Promise<void> {
   await db
     .collection('users')
     .createIndex({ clerkUserId: 1 }, { unique: true, name: 'idx_users_clerkUserId' });
-  await db
-    .collection('users')
-    .createIndex({ email: 1 }, { name: 'idx_users_email' });
+  await db.collection('users').createIndex({ email: 1 }, { name: 'idx_users_email' });
 
   // bills
   await db
@@ -19,10 +17,7 @@ export async function ensureAllIndexes(): Promise<void> {
   // monthlyBills
   await db
     .collection('monthlyBills')
-    .createIndex(
-      { userId: 1, year: 1, month: 1 },
-      { name: 'idx_monthlyBills_userId_year_month' },
-    );
+    .createIndex({ userId: 1, year: 1, month: 1 }, { name: 'idx_monthlyBills_userId_year_month' });
   await db
     .collection('monthlyBills')
     .createIndex(
@@ -39,8 +34,5 @@ export async function ensureAllIndexes(): Promise<void> {
     .createIndex({ toUserId: 1, status: 1 }, { name: 'idx_connections_toUserId_status' });
   await db
     .collection('connections')
-    .createIndex(
-      { fromUserId: 1, toUserId: 1 },
-      { unique: true, name: 'idx_connections_fromTo' },
-    );
+    .createIndex({ fromUserId: 1, toUserId: 1 }, { unique: true, name: 'idx_connections_fromTo' });
 }

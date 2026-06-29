@@ -34,9 +34,11 @@ app.use('/api/months', monthsRouter);
 app.use('/api/connections', connectionsRouter);
 
 // Generic error handler
-app.use((err: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
-  console.error(err);
-  res.status(500).json({ error: 'Internal server error' });
-});
+app.use(
+  (err: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  },
+);
 
 export default app;

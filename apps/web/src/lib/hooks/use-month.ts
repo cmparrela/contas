@@ -1,10 +1,10 @@
 'use client';
 
 import { useAuth } from '@clerk/nextjs';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { UpdateMonthlyBillInput } from '@contas/shared';
-import { requireToken } from '../require-token';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { confirmSharedPayment, getMonth, markSharedPaid, updateMonthlyBill } from '../api/months';
+import { requireToken } from '../require-token';
 
 export function useMonth(year: number, month: number) {
   const { getToken } = useAuth();
