@@ -470,7 +470,7 @@ function ContasContent() {
                         e.stopPropagation();
                         togglePaid(mb.billId, !!mb.paidAt);
                       }}
-                      className="flex-shrink-0 rounded-full transition-opacity hover:opacity-70"
+                      className="-m-2 flex-shrink-0 rounded-full p-2 transition-opacity hover:opacity-70"
                       aria-label={mb.paidAt ? 'Desmarcar como pago' : 'Marcar como pago'}
                     >
                       {mb.paidAt ? (
@@ -571,7 +571,7 @@ function ContasContent() {
                                   e.stopPropagation();
                                   togglePaid(mb.billId, !!mb.paidAt);
                                 }}
-                                className="flex-shrink-0 rounded-full transition-opacity hover:opacity-70"
+                                className="-m-2 flex-shrink-0 rounded-full p-2 transition-opacity hover:opacity-70"
                                 aria-label={mb.paidAt ? 'Desmarcar como pago' : 'Marcar como pago'}
                               >
                                 {mb.paidAt ? (
