@@ -25,12 +25,12 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
     >
       <div className="flex flex-1 flex-col gap-1 px-3 py-5">
         <div className="mb-4 flex items-center justify-between px-2">
-          <Link
-            href="/contas"
-            onClick={onClose}
-            className="text-xs font-black uppercase tracking-[0.12em] text-primary"
-          >
-            Conta Certa
+          <Link href="/contas" onClick={onClose} className="flex items-center gap-1.5">
+            {/* biome-ignore lint/performance/noImgElement: static local SVG, no need for next/image */}
+            <img src="/logo-icon.svg" alt="" className="h-4 w-4" />
+            <span className="text-xs font-black uppercase tracking-[0.12em] text-primary">
+              Conta Certa
+            </span>
           </Link>
           <button
             type="button"

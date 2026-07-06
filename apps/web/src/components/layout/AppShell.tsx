@@ -19,9 +19,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         >
           <Menu size={18} />
         </button>
-        <span className="ml-3 text-xs font-black uppercase tracking-[0.12em] text-primary">
-          Conta Certa
-        </span>
+        <div className="ml-3 flex items-center gap-1.5">
+          {/* biome-ignore lint/performance/noImgElement: static local SVG, no need for next/image */}
+          <img src="/logo-icon.svg" alt="" className="h-4 w-4" />
+          <span className="text-xs font-black uppercase tracking-[0.12em] text-primary">
+            Conta Certa
+          </span>
+        </div>
       </div>
 
       {/* Mobile overlay */}

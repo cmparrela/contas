@@ -13,10 +13,11 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         />
 
         {/* Logo */}
-        <div className="relative z-10 flex items-center gap-3">
-          <span className="text-xs font-black uppercase tracking-[0.12em] text-white">
-            Conta Certa
-          </span>
+        <div className="relative z-10 flex items-center">
+          <div className="inline-flex items-center rounded-xl bg-white px-3 py-2 shadow-sm">
+            {/* biome-ignore lint/performance/noImgElement: static local SVG, no need for next/image */}
+            <img src="/logo-full.svg" alt="Conta Certa" className="h-6" />
+          </div>
         </div>
 
         {/* Tagline */}
@@ -45,7 +46,9 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           }}
         />
 
-        <div className="relative z-10 mb-8 flex items-center gap-2.5 lg:hidden">
+        <div className="relative z-10 mb-8 flex items-center gap-1.5 lg:hidden">
+          {/* biome-ignore lint/performance/noImgElement: static local SVG, no need for next/image */}
+          <img src="/logo-icon.svg" alt="" className="h-4 w-4" />
           <span className="text-xs font-black uppercase tracking-[0.12em] text-primary">
             Conta Certa
           </span>

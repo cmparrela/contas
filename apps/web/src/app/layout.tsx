@@ -14,6 +14,9 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: 'Conta Certa — Gestão de contas do lar',
   description: 'Organize as contas mensais da sua casa e divida com quem você mora.',
+  icons: {
+    icon: '/logo-icon.svg',
+  },
 };
 
 const themeScript = `
