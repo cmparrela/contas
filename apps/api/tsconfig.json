@@ -17,5 +17,5 @@
       "@contas/shared": ["../../packages/shared/src/index.ts"]
     }
   },
-  "include": ["src/**/*.ts"]
+  "include": ["api/**/*.ts", "src/**/*.ts"]
 }

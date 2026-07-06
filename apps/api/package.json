@@ -7,7 +7,7 @@
   },
   "scripts": {
     "dev": "tsx watch --env-file=.env.local src/local.ts",
-    "build": "esbuild src/app.ts --bundle --platform=node --target=node22 --format=cjs --outfile=api/index.js --alias:@contas/shared=../../packages/shared/src/index.ts --external:express --external:cors --external:@clerk/express --external:mongodb --external:zod",
+    "build": "tsc --noEmit",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
