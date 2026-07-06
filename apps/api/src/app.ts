@@ -1,6 +1,7 @@
 import { clerkMiddleware } from '@clerk/express';
 import cors from 'cors';
 import express from 'express';
+import { faviconIco } from './favicon';
 import billsRouter from './routes/bills';
 import connectionsRouter from './routes/connections';
 import monthsRouter from './routes/months';
@@ -19,6 +20,10 @@ app.use(clerkMiddleware());
 app.use((req, _res, next) => {
   console.log(`${req.method} ${req.path}`);
   next();
+});
+
+app.get('/favicon.ico', (_req, res) => {
+  res.type('image/x-icon').send(faviconIco);
 });
 
 app.get('/api/health', (_req, res) => {

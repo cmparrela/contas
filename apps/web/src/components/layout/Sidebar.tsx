@@ -4,6 +4,7 @@ import { UserButton } from '@clerk/nextjs';
 import { X } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { ThemeToggle } from '@/components/theme-toggle';
 
 const NAV_LINKS = [
   { href: '/contas', label: 'Contas' },
@@ -62,8 +63,9 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
         </nav>
       </div>
 
-      <div className="border-t border-border px-4 py-4">
+      <div className="flex items-center justify-between border-t border-border px-4 py-4">
         <UserButton appearance={{ elements: { userButtonAvatarBox: 'h-8 w-8' } }} />
+        <ThemeToggle />
       </div>
     </aside>
   );
