@@ -1,7 +1,10 @@
 {
-  "installCommand": "cd ../.. && pnpm install --frozen-lockfile",
+  "framework": null,
+  "installCommand": "cd ../.. && pnpm install --frozen-lockfile --prod=false",
+  "buildCommand": "pnpm run build",
+  "outputDirectory": "public",
   "functions": {
-    "api/index.ts": {
+    "api/index.js": {
       "maxDuration": 30
     }
   },
