@@ -160,7 +160,15 @@
 /* ----------------------------------------------------------------------------
    Clerk — dark-mode overrides
 ---------------------------------------------------------------------------- */
-.dark .cl-card,
+.dark .cl-card {
+  background-color: var(--color-surface) !important;
+  border-color: var(--color-border) !important;
+  box-shadow:
+    0 0 0 1px var(--color-border),
+    0 24px 60px -12px rgba(0, 0, 0, 0.6),
+    0 0 40px -8px var(--color-primary-glow) !important;
+}
+
 .dark .cl-footer {
   background-color: var(--color-surface) !important;
   border-color: var(--color-border) !important;

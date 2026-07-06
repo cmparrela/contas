@@ -35,13 +35,22 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
       </div>
 
       {/* Form area */}
-      <div className="flex flex-1 flex-col items-center justify-center bg-background px-4 py-12">
-        <div className="mb-8 flex items-center gap-2.5 lg:hidden">
+      <div className="relative flex flex-1 flex-col items-center justify-center overflow-hidden bg-background px-4 py-12">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 hidden dark:block"
+          style={{
+            background:
+              'radial-gradient(ellipse 60% 50% at 50% -10%, var(--color-primary-glow) 0%, transparent 60%)',
+          }}
+        />
+
+        <div className="relative z-10 mb-8 flex items-center gap-2.5 lg:hidden">
           <span className="text-xs font-black uppercase tracking-[0.12em] text-primary">
             Conta Certa
           </span>
         </div>
-        {children}
+        <div className="relative z-10 flex w-full flex-col items-center">{children}</div>
       </div>
     </div>
   );
