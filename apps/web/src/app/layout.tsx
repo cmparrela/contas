@@ -12,7 +12,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: 'Contas — Gestão de contas do lar',
+  title: 'Conta Certa — Gestão de contas do lar',
   description: 'Organize as contas mensais da sua casa e divida com quem você mora.',
 };
 

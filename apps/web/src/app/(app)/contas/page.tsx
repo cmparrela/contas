@@ -286,6 +286,7 @@ function ContasContent() {
   });
   const [deleteTarget, setDeleteTarget] = useState<BillResponse | null>(null);
   const [pixKey, setPixKey] = useState('');
+  const [isBulkUpdating, setIsBulkUpdating] = useState(false);
 
   useEffect(() => {
     setPixKey(localStorage.getItem(PIX_KEY_STORAGE) ?? '');
@@ -349,6 +350,21 @@ function ContasContent() {
     updateMonthlyBill.mutate({ billId, body: { paid: !currentlyPaid } });
   }
 
+  const unpaidBills = monthlyBills.filter((mb) => !mb.paidAt);
+  const paidBills = monthlyBills.filter((mb) => mb.paidAt);
+
+  async function bulkTogglePaid(bills: MonthlyBillResponse[], paid: boolean) {
+    if (bills.length === 0) return;
+    setIsBulkUpdating(true);
+    try {
+      await Promise.all(
+        bills.map((mb) => updateMonthlyBill.mutateAsync({ billId: mb.billId, body: { paid } })),
+      );
+    } finally {
+      setIsBulkUpdating(false);
+    }
+  }
+
   return (
     <>
       <div className="flex animate-[fade-in_0.35s_ease_both] flex-col gap-8">
@@ -393,9 +409,31 @@ function ContasContent() {
             </button>
           </div>
 
-          <p className="text-sm text-muted">
-            {paidCount} de {monthlyBills.length} contas pagas
-          </p>
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-sm text-muted">
+              {paidCount} de {monthlyBills.length} contas pagas
+            </p>
+            {monthlyBills.length > 0 && (
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => bulkTogglePaid(unpaidBills, true)}
+                  disabled={isBulkUpdating || unpaidBills.length === 0}
+                  className="btn-ghost py-1 text-xs"
+                >
+                  Pagar tudo
+                </button>
+                <button
+                  type="button"
+                  onClick={() => bulkTogglePaid(paidBills, false)}
+                  disabled={isBulkUpdating || paidBills.length === 0}
+                  className="btn-ghost py-1 text-xs"
+                >
+                  Despagar tudo
+                </button>
+              </div>
+            )}
+          </div>
         </header>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
@@ -420,7 +458,9 @@ function ContasContent() {
               {personalBills.map((mb) => (
                 <div
                   key={mb._id}
-                  className="group card flex cursor-pointer items-center justify-between gap-4 p-4"
+                  className={`group card flex cursor-pointer items-center justify-between gap-4 p-4 ${
+                    mb.paidAt ? 'bg-positive-soft' : ''
+                  }`}
                   onClick={() => mb.bill && setModalState({ open: true, bill: mb.bill })}
                 >
                   <div className="flex items-center gap-3">
@@ -454,7 +494,9 @@ function ContasContent() {
                       <p className="text-sm font-semibold text-foreground">
                         {formatCurrency(mb.amount)}
                       </p>
-                      {mb.paidAt && <p className="text-xs text-positive">Pago</p>}
+                      {mb.paidAt && (
+                        <span className="badge mt-0.5 bg-positive-soft text-positive">Pago</span>
+                      )}
                     </div>
                     {mb.bill && (
                       <div className="flex gap-0.5 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
@@ -516,7 +558,9 @@ function ContasContent() {
                       {group.bills.map((mb) => (
                         <div
                           key={mb._id}
-                          className="group card cursor-pointer p-4"
+                          className={`group card cursor-pointer p-4 ${
+                            mb.paidAt ? 'bg-positive-soft' : ''
+                          }`}
                           onClick={() => mb.bill && setModalState({ open: true, bill: mb.bill })}
                         >
                           <div className="flex items-center justify-between gap-4">
@@ -549,9 +593,16 @@ function ContasContent() {
                               </div>
                             </div>
                             <div className="flex items-center gap-2">
-                              <p className="text-sm font-semibold text-foreground">
-                                {formatCurrency(mb.amount)}
-                              </p>
+                              <div className="text-right">
+                                <p className="text-sm font-semibold text-foreground">
+                                  {formatCurrency(mb.amount)}
+                                </p>
+                                {mb.paidAt && (
+                                  <span className="badge mt-0.5 bg-positive-soft text-positive">
+                                    Pago
+                                  </span>
+                                )}
+                              </div>
                               {mb.bill && (
                                 <div className="flex gap-0.5 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
                                   <div onClick={(e) => e.stopPropagation()}>

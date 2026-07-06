@@ -20,7 +20,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <Menu size={18} />
         </button>
         <span className="ml-3 text-xs font-black uppercase tracking-[0.12em] text-primary">
-          Contas
+          Conta Certa
         </span>
       </div>
 

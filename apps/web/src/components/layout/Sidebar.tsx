@@ -30,7 +30,7 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
             onClick={onClose}
             className="text-xs font-black uppercase tracking-[0.12em] text-primary"
           >
-            Contas
+            Conta Certa
           </Link>
           <button
             type="button"
