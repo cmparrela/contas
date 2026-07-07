@@ -506,7 +506,7 @@ function ContasContent() {
                     <SortableBillRow
                       key={mb._id}
                       id={mb.bill!._id}
-                      className={`group card flex cursor-pointer items-center justify-between gap-4 p-4 ${
+                      className={`group card flex min-h-[76px] cursor-pointer items-center justify-between gap-4 p-4 ${
                         mb.paidAt ? 'bg-positive-soft' : ''
                       }`}
                       onClick={() => mb.bill && setModalState({ open: true, bill: mb.bill })}
@@ -548,11 +548,6 @@ function ContasContent() {
                               <p className="text-sm font-semibold text-foreground">
                                 {formatCurrency(mb.amount)}
                               </p>
-                              {mb.paidAt && (
-                                <span className="badge mt-0.5 bg-positive-soft text-positive">
-                                  Pago
-                                </span>
-                              )}
                             </div>
                             {mb.bill && (
                               <div className="flex gap-0.5 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
@@ -623,7 +618,7 @@ function ContasContent() {
                           }`}
                           onClick={() => mb.bill && setModalState({ open: true, bill: mb.bill })}
                         >
-                          <div className="flex items-center justify-between gap-4">
+                          <div className="flex min-h-[44px] items-center justify-between gap-4">
                             <div className="flex items-center gap-3">
                               <button
                                 type="button"
@@ -658,11 +653,6 @@ function ContasContent() {
                                 <p className="text-sm font-semibold text-foreground">
                                   {formatCurrency(mb.amount)}
                                 </p>
-                                {mb.paidAt && (
-                                  <span className="badge mt-0.5 bg-positive-soft text-positive">
-                                    Pago
-                                  </span>
-                                )}
                               </div>
                               {mb.bill && (
                                 <div className="flex gap-0.5 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">

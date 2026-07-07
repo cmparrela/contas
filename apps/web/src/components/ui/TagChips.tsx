@@ -19,7 +19,11 @@ export function TagChips({ tagIds }: { tagIds?: string[] }) {
         <span
           key={tag._id}
           className="badge"
-          style={{ backgroundColor: `${tag.color}1A`, color: tag.color }}
+          style={{
+            backgroundColor: `${tag.color}1A`,
+            color: tag.color,
+            border: `1px solid ${tag.color}55`,
+          }}
         >
           {tag.name}
         </span>
