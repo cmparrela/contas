@@ -39,6 +39,8 @@ export function SortableBillRow({ id, className, onClick, children }: SortableBi
   );
 
   return (
+    // biome-ignore lint/a11y/noStaticElementInteractions: whole-row click is a shortcut; the row always renders its own focusable "Editar" button for keyboard users
+    // biome-ignore lint/a11y/useKeyWithClickEvents: same as above — keyboard access goes through the row's "Editar" button, not this wrapper
     <div ref={setNodeRef} style={style} className={className} onClick={onClick}>
       {children(dragHandle)}
     </div>

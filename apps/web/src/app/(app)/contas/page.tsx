@@ -96,7 +96,8 @@ function CopyButton({ text, label }: { text: string; label?: string }) {
   const [copied, setCopied] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  function handleCopy() {
+  function handleCopy(e: React.MouseEvent) {
+    e.stopPropagation();
     navigator.clipboard.writeText(text).then(() => {
       setCopied(true);
       if (timerRef.current) clearTimeout(timerRef.current);
@@ -604,10 +605,7 @@ function ContasContent() {
                   <div key={group.key}>
                     <div className="mb-2 flex items-center gap-2">
                       <span className="text-sm font-semibold text-foreground">{group.label}</span>
-                      <div
-                        className="ml-auto flex items-center gap-1.5"
-                        onClick={(e) => e.stopPropagation()}
-                      >
+                      <div className="ml-auto flex items-center gap-1.5">
                         <CopyButton text={groupedMsg} label="Copiar tudo" />
                         {waUrl && <WhatsAppButton url={waUrl} />}
                       </div>
@@ -615,6 +613,8 @@ function ContasContent() {
 
                     <div className="flex flex-col gap-2">
                       {group.bills.map((mb) => (
+                        // biome-ignore lint/a11y/noStaticElementInteractions: whole-row click is a shortcut; the row always renders its own focusable "Editar" button for keyboard users
+                        // biome-ignore lint/a11y/useKeyWithClickEvents: same as above — keyboard access goes through the row's "Editar" button, not this wrapper
                         <div
                           key={mb._id}
                           className={`group card cursor-pointer p-4 ${
@@ -660,9 +660,7 @@ function ContasContent() {
                               </div>
                               {mb.bill && (
                                 <div className="flex gap-0.5 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
-                                  <div onClick={(e) => e.stopPropagation()}>
-                                    <CopyButton text={buildSingleMessage(mb, pixKey)} />
-                                  </div>
+                                  <CopyButton text={buildSingleMessage(mb, pixKey)} />
                                   <button
                                     type="button"
                                     onClick={(e) => {
@@ -690,19 +688,16 @@ function ContasContent() {
                             </div>
                           </div>
                           {mb.sharedData && (
-                            <div
-                              className="mt-3 flex flex-wrap items-center gap-4 rounded-xl bg-surface-muted px-4 py-2 text-xs"
-                              onClick={(e) => e.stopPropagation()}
-                              onKeyDown={(e) => e.stopPropagation()}
-                            >
+                            <div className="mt-3 flex flex-wrap items-center gap-4 rounded-xl bg-surface-muted px-4 py-2 text-xs">
                               <button
                                 type="button"
-                                onClick={() =>
+                                onClick={(e) => {
+                                  e.stopPropagation();
                                   markSharedPaid.mutate({
                                     billId: mb.billId,
                                     value: !mb.sharedData?.otherPaidAt,
-                                  })
-                                }
+                                  });
+                                }}
                                 disabled={markSharedPaid.isPending}
                                 className="flex items-center gap-1.5"
                                 aria-label={
@@ -724,12 +719,13 @@ function ContasContent() {
                               {mb.sharedData.otherPaidAt && (
                                 <button
                                   type="button"
-                                  onClick={() =>
+                                  onClick={(e) => {
+                                    e.stopPropagation();
                                     confirmSharedPayment.mutate({
                                       billId: mb.billId,
                                       value: !mb.sharedData?.payerConfirmedAt,
-                                    })
-                                  }
+                                    });
+                                  }}
                                   disabled={confirmSharedPayment.isPending}
                                   className={
                                     mb.sharedData.payerConfirmedAt
