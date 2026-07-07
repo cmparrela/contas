@@ -158,7 +158,7 @@ function NotesPopover({ notes }: { notes: string }) {
   return (
     <div className="group/note relative flex-shrink-0">
       <MessageSquare size={12} className="text-muted/60 cursor-default" />
-      <div className="pointer-events-none absolute bottom-full left-1/2 z-20 mb-2 w-52 -translate-x-1/2 rounded-xl border border-border bg-surface px-3 py-2 text-xs text-muted shadow-float opacity-0 transition-opacity group-hover/note:opacity-100">
+      <div className="pointer-events-none absolute bottom-full left-1/2 z-20 mb-2 w-52 -translate-x-1/2 whitespace-pre-wrap rounded-xl border border-border bg-surface px-3 py-2 text-xs text-muted shadow-float opacity-0 transition-opacity group-hover/note:opacity-100">
         {notes}
         <span className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-border" />
       </div>

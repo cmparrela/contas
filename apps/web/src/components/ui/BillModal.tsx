@@ -204,12 +204,13 @@ export function BillModal({ open, bill, billCount = 0, onClose }: BillModalProps
               <label htmlFor="bill-notes" className="text-xs font-medium text-muted">
                 Observações
               </label>
-              <input
+              <textarea
                 id="bill-notes"
-                className="input"
+                className="input min-h-[72px] resize-y"
                 placeholder="Agência 2141, vence dia 10…"
                 value={form.notes}
                 onChange={(e) => setField('notes', e.target.value)}
+                rows={3}
               />
             </div>
           </div>
