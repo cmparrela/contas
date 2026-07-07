@@ -1,0 +1,5 @@
+# Override root .gitignore: dist is committed here so @vercel/node ncc can bundle it.
+# ncc resolves @contas/shared at checkout time — if dist/index.js is absent, it marks
+# the package as external and the Lambda fails at runtime with "Cannot find module".
+!dist
+!dist/
