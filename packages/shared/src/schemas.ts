@@ -75,6 +75,12 @@ export const updateMonthlyBillSchema = z.object({
 
 export type UpdateMonthlyBillInput = z.infer<typeof updateMonthlyBillSchema>;
 
+export const toggleSharedStatusSchema = z.object({
+  value: z.boolean(),
+});
+
+export type ToggleSharedStatusInput = z.infer<typeof toggleSharedStatusSchema>;
+
 // ─── Tag schemas ──────────────────────────────────────────────────────────
 
 export const createTagSchema = z.object({

@@ -1,4 +1,4 @@
-import { updateMonthlyBillSchema } from '@contas/shared';
+import { toggleSharedStatusSchema, updateMonthlyBillSchema } from '@contas/shared';
 import type { RequestHandler } from 'express';
 import { Router } from 'express';
 import { ObjectId } from 'mongodb';
@@ -77,6 +77,7 @@ function makeSharedHandler(
     userId: ObjectId,
     year: number,
     month: number,
+    value: boolean,
   ) => Promise<DbMonthlyBill | null>,
 ): RequestHandler {
   return async (req, res, next) => {
@@ -85,13 +86,14 @@ function makeSharedHandler(
       const year = parseInt(req.params.year as string, 10);
       const month = parseInt(req.params.month as string, 10);
       const billId = parseId(req.params.billId as string);
+      const { value } = req.body as { value: boolean };
 
       if (!billId || Number.isNaN(year) || Number.isNaN(month)) {
         res.status(400).json({ error: 'Invalid parameters' });
         return;
       }
 
-      const updated = await repoMethod(billId, userId, year, month);
+      const updated = await repoMethod(billId, userId, year, month, value);
       if (!updated) {
         res.status(404).json({ error: 'Not found' });
         return;
@@ -179,12 +181,14 @@ router.put(
 router.post(
   '/:year/:month/:billId/shared-paid',
   requireAuth,
+  validateBody(toggleSharedStatusSchema),
   makeSharedHandler(monthsRepo.updateSharedPaid),
 );
 
 router.post(
   '/:year/:month/:billId/shared-confirm',
   requireAuth,
+  validateBody(toggleSharedStatusSchema),
   makeSharedHandler(monthsRepo.updateSharedConfirm),
 );
 

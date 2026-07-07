@@ -608,9 +608,7 @@ function ContasContent() {
                         className="ml-auto flex items-center gap-1.5"
                         onClick={(e) => e.stopPropagation()}
                       >
-                        {group.bills.length > 1 && (
-                          <CopyButton text={groupedMsg} label="Copiar tudo" />
-                        )}
+                        <CopyButton text={groupedMsg} label="Copiar tudo" />
                         {waUrl && <WhatsAppButton url={waUrl} />}
                       </div>
                     </div>
@@ -699,9 +697,19 @@ function ContasContent() {
                             >
                               <button
                                 type="button"
-                                onClick={() => markSharedPaid.mutate(mb.billId)}
-                                disabled={!!mb.sharedData.otherPaidAt || markSharedPaid.isPending}
-                                className="flex items-center gap-1.5 disabled:cursor-default"
+                                onClick={() =>
+                                  markSharedPaid.mutate({
+                                    billId: mb.billId,
+                                    value: !mb.sharedData?.otherPaidAt,
+                                  })
+                                }
+                                disabled={markSharedPaid.isPending}
+                                className="flex items-center gap-1.5"
+                                aria-label={
+                                  mb.sharedData.otherPaidAt
+                                    ? 'Desmarcar parte deles como paga'
+                                    : 'Marcar parte deles como paga'
+                                }
                               >
                                 {mb.sharedData.otherPaidAt ? (
                                   <CheckCircle2 className="h-3.5 w-3.5 text-positive" />
@@ -713,19 +721,27 @@ function ContasContent() {
                                 </span>
                               </button>
 
-                              {mb.sharedData.otherPaidAt &&
-                                (mb.sharedData.payerConfirmedAt ? (
-                                  <span className="text-positive">PIX confirmado</span>
-                                ) : (
-                                  <button
-                                    type="button"
-                                    onClick={() => confirmSharedPayment.mutate(mb.billId)}
-                                    disabled={confirmSharedPayment.isPending}
-                                    className="font-medium text-primary hover:underline"
-                                  >
-                                    Confirmar PIX recebido
-                                  </button>
-                                ))}
+                              {mb.sharedData.otherPaidAt && (
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    confirmSharedPayment.mutate({
+                                      billId: mb.billId,
+                                      value: !mb.sharedData?.payerConfirmedAt,
+                                    })
+                                  }
+                                  disabled={confirmSharedPayment.isPending}
+                                  className={
+                                    mb.sharedData.payerConfirmedAt
+                                      ? 'text-positive hover:opacity-70'
+                                      : 'font-medium text-primary hover:underline'
+                                  }
+                                >
+                                  {mb.sharedData.payerConfirmedAt
+                                    ? 'PIX confirmado'
+                                    : 'Confirmar PIX recebido'}
+                                </button>
+                              )}
                             </div>
                           )}
                         </div>

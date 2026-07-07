@@ -107,11 +107,14 @@ export async function updateSharedPaid(
   userId: ObjectId,
   year: number,
   month: number,
+  paid: boolean,
 ): Promise<DbMonthlyBill | null> {
   const col = await getCollection();
   return col.findOneAndUpdate(
     { billId, userId, year, month },
-    { $set: { 'sharedData.otherPaidAt': new Date() } },
+    paid
+      ? { $set: { 'sharedData.otherPaidAt': new Date() } }
+      : { $unset: { 'sharedData.otherPaidAt': '', 'sharedData.payerConfirmedAt': '' } },
     { returnDocument: 'after' },
   );
 }
@@ -121,11 +124,14 @@ export async function updateSharedConfirm(
   userId: ObjectId,
   year: number,
   month: number,
+  confirmed: boolean,
 ): Promise<DbMonthlyBill | null> {
   const col = await getCollection();
   return col.findOneAndUpdate(
     { billId, userId, year, month },
-    { $set: { 'sharedData.payerConfirmedAt': new Date() } },
+    confirmed
+      ? { $set: { 'sharedData.payerConfirmedAt': new Date() } }
+      : { $unset: { 'sharedData.payerConfirmedAt': '' } },
     { returnDocument: 'after' },
   );
 }

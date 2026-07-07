@@ -36,9 +36,11 @@ export async function markSharedPaid(
   year: number,
   month: number,
   billId: string,
+  value: boolean,
 ): Promise<MonthlyBillResponse> {
   const res = await authedFetch(token, `/api/months/${year}/${month}/${billId}/shared-paid`, {
     method: 'POST',
+    body: JSON.stringify({ value }),
   });
   if (!res.ok) throw new Error(`POST shared-paid failed: ${res.status}`);
   const data = (await res.json()) as { monthlyBill: MonthlyBillResponse };
@@ -50,9 +52,11 @@ export async function confirmSharedPayment(
   year: number,
   month: number,
   billId: string,
+  value: boolean,
 ): Promise<MonthlyBillResponse> {
   const res = await authedFetch(token, `/api/months/${year}/${month}/${billId}/shared-confirm`, {
     method: 'POST',
+    body: JSON.stringify({ value }),
   });
   if (!res.ok) throw new Error(`POST shared-confirm failed: ${res.status}`);
   const data = (await res.json()) as { monthlyBill: MonthlyBillResponse };

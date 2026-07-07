@@ -39,9 +39,9 @@ export function useMarkSharedPaid(year: number, month: number) {
   const qc = useQueryClient();
 
   return useMutation({
-    mutationFn: async (billId: string) => {
+    mutationFn: async ({ billId, value }: { billId: string; value: boolean }) => {
       const token = await requireToken(getToken);
-      return markSharedPaid(token, year, month, billId);
+      return markSharedPaid(token, year, month, billId, value);
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['month', year, month] });
@@ -54,9 +54,9 @@ export function useConfirmSharedPayment(year: number, month: number) {
   const qc = useQueryClient();
 
   return useMutation({
-    mutationFn: async (billId: string) => {
+    mutationFn: async ({ billId, value }: { billId: string; value: boolean }) => {
       const token = await requireToken(getToken);
-      return confirmSharedPayment(token, year, month, billId);
+      return confirmSharedPayment(token, year, month, billId, value);
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['month', year, month] });
