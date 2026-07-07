@@ -35,4 +35,9 @@ export async function ensureAllIndexes(): Promise<void> {
   await db
     .collection('connections')
     .createIndex({ fromUserId: 1, toUserId: 1 }, { unique: true, name: 'idx_connections_fromTo' });
+
+  // tags
+  await db
+    .collection('tags')
+    .createIndex({ userId: 1, name: 1 }, { unique: true, name: 'idx_tags_userId_name' });
 }

@@ -5,6 +5,7 @@ import { X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useCreateBill, useUpdateBill } from '@/lib/hooks/use-bills';
 import { useConnections } from '@/lib/hooks/use-connections';
+import { useTags } from '@/lib/hooks/use-tags';
 
 type ShareType = 'user' | 'external';
 
@@ -20,6 +21,7 @@ type FormData = {
   externalPhone: string;
   splitType: 'half' | 'custom';
   customSplitAmount: string;
+  tagIds: string[];
 };
 
 const EMPTY_FORM: FormData = {
@@ -34,6 +36,7 @@ const EMPTY_FORM: FormData = {
   externalPhone: '',
   splitType: 'half',
   customSplitAmount: '',
+  tagIds: [],
 };
 
 function billToForm(b: BillResponse): FormData {
@@ -49,6 +52,7 @@ function billToForm(b: BillResponse): FormData {
     externalPhone: b.externalContact?.phone ?? '',
     splitType: b.splitType ?? 'half',
     customSplitAmount: b.customSplitAmount != null ? String(b.customSplitAmount) : '',
+    tagIds: b.tagIds ?? [],
   };
 }
 
@@ -61,6 +65,7 @@ interface BillModalProps {
 
 export function BillModal({ open, bill, billCount = 0, onClose }: BillModalProps) {
   const { data: connectionsData } = useConnections();
+  const { data: tagsData } = useTags();
   const createBill = useCreateBill();
   const updateBill = useUpdateBill();
 
@@ -80,10 +85,20 @@ export function BillModal({ open, bill, billCount = 0, onClose }: BillModalProps
   }, [open, onClose]);
 
   const acceptedConnections = connectionsData?.accepted ?? [];
+  const tags = tagsData ?? [];
   const isPending = createBill.isPending || updateBill.isPending;
 
   function setField<K extends keyof FormData>(key: K, value: FormData[K]) {
     setForm((prev) => ({ ...prev, [key]: value }));
+  }
+
+  function toggleTag(tagId: string) {
+    setForm((prev) => ({
+      ...prev,
+      tagIds: prev.tagIds.includes(tagId)
+        ? prev.tagIds.filter((id) => id !== tagId)
+        : [...prev.tagIds, tagId],
+    }));
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -109,6 +124,7 @@ export function BillModal({ open, bill, billCount = 0, onClose }: BillModalProps
         form.isShared && form.splitType === 'custom' && form.customSplitAmount
           ? Number(form.customSplitAmount)
           : undefined,
+      tagIds: form.tagIds,
     };
 
     if (bill) {
@@ -196,6 +212,45 @@ export function BillModal({ open, bill, billCount = 0, onClose }: BillModalProps
                 onChange={(e) => setField('notes', e.target.value)}
               />
             </div>
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-medium text-muted">Tags</span>
+              <a href="/tags" className="text-xs text-primary hover:underline">
+                Gerenciar tags
+              </a>
+            </div>
+            {tags.length === 0 ? (
+              <p className="text-xs text-muted">
+                Nenhuma tag criada ainda.{' '}
+                <a href="/tags" className="text-primary underline">
+                  Criar a primeira
+                </a>
+                .
+              </p>
+            ) : (
+              <div className="flex flex-wrap gap-1.5">
+                {tags.map((tag) => {
+                  const selected = form.tagIds.includes(tag._id);
+                  return (
+                    <button
+                      key={tag._id}
+                      type="button"
+                      onClick={() => toggleTag(tag._id)}
+                      className="badge transition-opacity"
+                      style={{
+                        backgroundColor: selected ? tag.color : `${tag.color}1A`,
+                        color: selected ? '#ffffff' : tag.color,
+                        opacity: selected ? 1 : 0.85,
+                      }}
+                    >
+                      {tag.name}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
           <label className="flex cursor-pointer items-center gap-2.5">

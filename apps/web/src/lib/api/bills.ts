@@ -38,3 +38,13 @@ export async function deleteBill(token: string, id: string): Promise<void> {
     throw new Error(`DELETE /api/bills/${id} failed: ${res.status}`);
   }
 }
+
+export async function reorderBills(token: string, orderedIds: string[]): Promise<void> {
+  const res = await authedFetch(token, '/api/bills/reorder', {
+    method: 'PUT',
+    body: JSON.stringify({ orderedIds }),
+  });
+  if (!res.ok && res.status !== 204) {
+    throw new Error(`PUT /api/bills/reorder failed: ${res.status}`);
+  }
+}

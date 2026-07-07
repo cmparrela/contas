@@ -5,6 +5,7 @@ import { faviconIco } from './favicon';
 import billsRouter from './routes/bills';
 import connectionsRouter from './routes/connections';
 import monthsRouter from './routes/months';
+import tagsRouter from './routes/tags';
 
 const app = express();
 
@@ -37,6 +38,7 @@ app.get('/api/health', (_req, res) => {
 app.use('/api/bills', billsRouter);
 app.use('/api/months', monthsRouter);
 app.use('/api/connections', connectionsRouter);
+app.use('/api/tags', tagsRouter);
 
 // Generic error handler
 app.use(

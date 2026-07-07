@@ -17,6 +17,7 @@ export interface DbBill {
   payerUserId?: ObjectId;
   active: boolean;
   order: number;
+  tagIds: ObjectId[];
   createdAt: Date;
 }
 
@@ -91,4 +92,23 @@ export async function softDelete(id: ObjectId, userId: ObjectId): Promise<DbBill
 export async function listSharedWithUser(userId: ObjectId): Promise<DbBill[]> {
   const col = await getCollection();
   return col.find({ sharedWithUserId: userId, active: true }).sort({ order: 1 }).toArray();
+}
+
+/** Removes a deleted tag's id from every bill that referenced it */
+export async function removeTagFromAllBills(userId: ObjectId, tagId: ObjectId): Promise<void> {
+  const col = await getCollection();
+  await col.updateMany({ userId }, { $pull: { tagIds: tagId } });
+}
+
+/** Persists a new manual order for a set of bills owned by the user */
+export async function reorder(userId: ObjectId, orderedIds: ObjectId[]): Promise<void> {
+  const col = await getCollection();
+  await col.bulkWrite(
+    orderedIds.map((id, index) => ({
+      updateOne: {
+        filter: { _id: id, userId },
+        update: { $set: { order: index } },
+      },
+    })),
+  );
 }

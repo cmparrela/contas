@@ -104,10 +104,12 @@ router.get('/:year/:month', requireAuth, async (req, res, next) => {
     const bills = await billsRepo.findByIds(uniqueBillIds);
     const billMap = new Map(bills.map((b) => [b._id.toHexString(), b]));
 
-    const result = monthlyBills.map((mb) => ({
-      ...mb,
-      bill: billMap.get(mb.billId.toHexString()),
-    }));
+    const result = monthlyBills
+      .map((mb) => ({
+        ...mb,
+        bill: billMap.get(mb.billId.toHexString()),
+      }))
+      .sort((a, b) => (a.bill?.order ?? 0) - (b.bill?.order ?? 0));
 
     res.json({ monthlyBills: result, year, month });
   } catch (err) {

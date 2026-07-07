@@ -2,6 +2,15 @@
 
 import type { BillResponse, ConnectionResponse, MonthlyBillResponse } from '@contas/shared';
 import {
+  closestCenter,
+  DndContext,
+  type DragEndEvent,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core';
+import { arrayMove, SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import {
   Check,
   CheckCircle2,
   ChevronLeft,
@@ -18,8 +27,10 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useRef, useState } from 'react';
 import { BillModal } from '@/components/ui/BillModal';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
+import { SortableBillRow } from '@/components/ui/SortableBillRow';
+import { TagChips } from '@/components/ui/TagChips';
 import { capitalize, formatCurrency } from '@/lib/format';
-import { useBills, useDeleteBill } from '@/lib/hooks/use-bills';
+import { useBills, useDeleteBill, useReorderBills } from '@/lib/hooks/use-bills';
 import { useConnections } from '@/lib/hooks/use-connections';
 import { useMonth, useUpdateMonthlyBill } from '@/lib/hooks/use-month';
 
@@ -280,6 +291,7 @@ function ContasContent() {
   const { data: connectionsData } = useConnections();
   const updateMonthlyBill = useUpdateMonthlyBill(year, month);
   const deleteBill = useDeleteBill();
+  const reorderBills = useReorderBills();
 
   const [modalState, setModalState] = useState<{ open: boolean; bill?: BillResponse }>({
     open: false,
@@ -287,10 +299,22 @@ function ContasContent() {
   const [deleteTarget, setDeleteTarget] = useState<BillResponse | null>(null);
   const [pixKey, setPixKey] = useState('');
   const [isBulkUpdating, setIsBulkUpdating] = useState(false);
+  const [personalOrder, setPersonalOrder] = useState<string[]>([]);
+
+  const dragSensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+  );
 
   useEffect(() => {
     setPixKey(localStorage.getItem(PIX_KEY_STORAGE) ?? '');
   }, []);
+
+  useEffect(() => {
+    const ids = (data?.monthlyBills ?? [])
+      .filter((mb) => mb.bill != null && !mb.bill.isShared)
+      .map((mb) => mb.bill!._id);
+    setPersonalOrder(ids);
+  }, [data]);
 
   function savePixKey(v: string) {
     setPixKey(v);
@@ -329,9 +353,26 @@ function ContasContent() {
   }
 
   const monthlyBills = data.monthlyBills.filter((mb) => mb.bill != null);
-  const personalBills = monthlyBills.filter((mb) => !mb.bill?.isShared);
+  const personalBills = [...monthlyBills.filter((mb) => !mb.bill?.isShared)].sort((a, b) => {
+    const ai = personalOrder.indexOf(a.bill!._id);
+    const bi = personalOrder.indexOf(b.bill!._id);
+    return ai - bi;
+  });
   const sharedBills = monthlyBills.filter((mb) => mb.bill?.isShared);
   const sharedGroups = buildSharedGroups(sharedBills, connectionsData?.accepted ?? []);
+
+  function handlePersonalDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const oldIndex = personalOrder.indexOf(String(active.id));
+    const newIndex = personalOrder.indexOf(String(over.id));
+    if (oldIndex === -1 || newIndex === -1) return;
+
+    const next = arrayMove(personalOrder, oldIndex, newIndex);
+    setPersonalOrder(next);
+    reorderBills.mutate(next);
+  }
 
   const totalAmount = monthlyBills.reduce((sum, mb) => sum + (mb.amount ?? 0), 0);
   const { totalPaid, paidCount } = monthlyBills.reduce(
@@ -454,80 +495,99 @@ function ContasContent() {
         {personalBills.length > 0 && (
           <section>
             <h2 className="section-title mb-3">Minhas contas</h2>
-            <div className="flex flex-col gap-2">
-              {personalBills.map((mb) => (
-                <div
-                  key={mb._id}
-                  className={`group card flex cursor-pointer items-center justify-between gap-4 p-4 ${
-                    mb.paidAt ? 'bg-positive-soft' : ''
-                  }`}
-                  onClick={() => mb.bill && setModalState({ open: true, bill: mb.bill })}
-                >
-                  <div className="flex items-center gap-3">
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        togglePaid(mb.billId, !!mb.paidAt);
-                      }}
-                      className="-m-2 flex-shrink-0 rounded-full p-2 transition-opacity hover:opacity-70"
-                      aria-label={mb.paidAt ? 'Desmarcar como pago' : 'Marcar como pago'}
+            <DndContext
+              sensors={dragSensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handlePersonalDragEnd}
+            >
+              <SortableContext items={personalOrder} strategy={verticalListSortingStrategy}>
+                <div className="flex flex-col gap-2">
+                  {personalBills.map((mb) => (
+                    <SortableBillRow
+                      key={mb._id}
+                      id={mb.bill!._id}
+                      className={`group card flex cursor-pointer items-center justify-between gap-4 p-4 ${
+                        mb.paidAt ? 'bg-positive-soft' : ''
+                      }`}
+                      onClick={() => mb.bill && setModalState({ open: true, bill: mb.bill })}
                     >
-                      {mb.paidAt ? (
-                        <CheckCircle2 className="h-5 w-5 text-positive" />
-                      ) : (
-                        <Circle className="h-5 w-5 text-muted" />
+                      {(dragHandle) => (
+                        <>
+                          <div className="flex items-center gap-3">
+                            {dragHandle}
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                togglePaid(mb.billId, !!mb.paidAt);
+                              }}
+                              className="-m-2 flex-shrink-0 rounded-full p-2 transition-opacity hover:opacity-70"
+                              aria-label={mb.paidAt ? 'Desmarcar como pago' : 'Marcar como pago'}
+                            >
+                              {mb.paidAt ? (
+                                <CheckCircle2 className="h-5 w-5 text-positive" />
+                              ) : (
+                                <Circle className="h-5 w-5 text-muted" />
+                              )}
+                            </button>
+                            <div>
+                              <div className="flex items-center gap-1.5">
+                                <p className="text-sm font-medium text-foreground">
+                                  {mb.bill?.name ?? '—'}
+                                </p>
+                                {mb.bill?.notes && <NotesPopover notes={mb.bill.notes} />}
+                              </div>
+                              {mb.bill?.where && (
+                                <p className="text-xs text-muted">{mb.bill.where}</p>
+                              )}
+                              <TagChips tagIds={mb.bill?.tagIds} />
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <div className="text-right">
+                              <p className="text-sm font-semibold text-foreground">
+                                {formatCurrency(mb.amount)}
+                              </p>
+                              {mb.paidAt && (
+                                <span className="badge mt-0.5 bg-positive-soft text-positive">
+                                  Pago
+                                </span>
+                              )}
+                            </div>
+                            {mb.bill && (
+                              <div className="flex gap-0.5 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setModalState({ open: true, bill: mb.bill });
+                                  }}
+                                  className="flex h-7 w-7 items-center justify-center rounded-lg text-muted hover:bg-surface-muted hover:text-foreground"
+                                  aria-label="Editar"
+                                >
+                                  <Pencil size={13} />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    mb.bill && setDeleteTarget(mb.bill);
+                                  }}
+                                  className="flex h-7 w-7 items-center justify-center rounded-lg text-muted hover:bg-danger-soft hover:text-danger"
+                                  aria-label="Remover"
+                                >
+                                  <Trash2 size={13} />
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        </>
                       )}
-                    </button>
-                    <div>
-                      <div className="flex items-center gap-1.5">
-                        <p className="text-sm font-medium text-foreground">
-                          {mb.bill?.name ?? '—'}
-                        </p>
-                        {mb.bill?.notes && <NotesPopover notes={mb.bill.notes} />}
-                      </div>
-                      {mb.bill?.where && <p className="text-xs text-muted">{mb.bill.where}</p>}
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="text-right">
-                      <p className="text-sm font-semibold text-foreground">
-                        {formatCurrency(mb.amount)}
-                      </p>
-                      {mb.paidAt && (
-                        <span className="badge mt-0.5 bg-positive-soft text-positive">Pago</span>
-                      )}
-                    </div>
-                    {mb.bill && (
-                      <div className="flex gap-0.5 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setModalState({ open: true, bill: mb.bill });
-                          }}
-                          className="flex h-7 w-7 items-center justify-center rounded-lg text-muted hover:bg-surface-muted hover:text-foreground"
-                          aria-label="Editar"
-                        >
-                          <Pencil size={13} />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            mb.bill && setDeleteTarget(mb.bill);
-                          }}
-                          className="flex h-7 w-7 items-center justify-center rounded-lg text-muted hover:bg-danger-soft hover:text-danger"
-                          aria-label="Remover"
-                        >
-                          <Trash2 size={13} />
-                        </button>
-                      </div>
-                    )}
-                  </div>
+                    </SortableBillRow>
+                  ))}
                 </div>
-              ))}
-            </div>
+              </SortableContext>
+            </DndContext>
           </section>
         )}
 
@@ -590,6 +650,7 @@ function ContasContent() {
                                 {mb.bill?.where && (
                                   <p className="text-xs text-muted">{mb.bill.where}</p>
                                 )}
+                                <TagChips tagIds={mb.bill?.tagIds} />
                               </div>
                             </div>
                             <div className="flex items-center gap-2">

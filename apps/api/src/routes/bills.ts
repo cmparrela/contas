@@ -1,4 +1,4 @@
-import { createBillSchema, updateBillSchema } from '@contas/shared';
+import { createBillSchema, reorderBillsSchema, updateBillSchema } from '@contas/shared';
 import { Router } from 'express';
 import { ObjectId } from 'mongodb';
 import { parseId } from '../lib/parse-id';
@@ -35,6 +35,7 @@ router.post('/', requireAuth, validateBody(createBillSchema), async (req, res, n
       customSplitAmount?: number;
       payerUserId?: string;
       order: number;
+      tagIds?: string[];
     };
 
     const bill = await billsRepo.create(userId, {
@@ -54,9 +55,29 @@ router.post('/', requireAuth, validateBody(createBillSchema), async (req, res, n
           : undefined,
       active: true,
       order: body.order,
+      tagIds: (body.tagIds ?? []).map((tagId) => new ObjectId(tagId)),
     });
 
     res.status(201).json({ bill });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// PUT /api/bills/reorder — persist a new manual order for the user's bills
+router.put('/reorder', requireAuth, validateBody(reorderBillsSchema), async (req, res, next) => {
+  try {
+    const userId = new ObjectId(req.user!.id);
+    const { orderedIds } = req.body as { orderedIds: string[] };
+
+    const ids = orderedIds.map((orderedId) => parseId(orderedId));
+    if (ids.some((id) => !id)) {
+      res.status(400).json({ error: 'Invalid ID' });
+      return;
+    }
+
+    await billsRepo.reorder(userId, ids as ObjectId[]);
+    res.status(204).send();
   } catch (err) {
     next(err);
   }
@@ -81,6 +102,9 @@ router.put('/:id', requireAuth, validateBody(updateBillSchema), async (req, res,
     }
     if (typeof patch.payerUserId === 'string') {
       patch.payerUserId = new ObjectId(patch.payerUserId as string);
+    }
+    if (Array.isArray(patch.tagIds)) {
+      patch.tagIds = (patch.tagIds as string[]).map((tagId) => new ObjectId(tagId));
     }
 
     const bill = await billsRepo.update(id, userId, patch);

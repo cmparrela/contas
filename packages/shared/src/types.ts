@@ -36,6 +36,17 @@ export interface BillResponse {
   payerUserId?: string; // who pays the full bill (collects from other)
   active: boolean;
   order: number; // for sorting
+  tagIds: string[];
+  createdAt: string;
+}
+
+// ─── Tag ──────────────────────────────────────────────────────────────────
+
+export interface TagResponse {
+  _id: string;
+  userId: string;
+  name: string;
+  color: string; // hex, e.g. "#0891b2"
   createdAt: string;
 }
 

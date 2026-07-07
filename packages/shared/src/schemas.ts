@@ -24,6 +24,7 @@ export const createBillSchema = z
     customSplitAmount: z.number().positive().optional(),
     payerUserId: z.string().optional(),
     order: z.number().int().min(0).default(0),
+    tagIds: z.array(z.string()).optional(),
   })
   .superRefine((data, ctx) => {
     if (data.sharedWithUserId && data.externalContact) {
@@ -51,6 +52,7 @@ export const updateBillSchema = z
     payerUserId: z.string().nullable().optional(),
     active: z.boolean().optional(),
     order: z.number().int().min(0).optional(),
+    tagIds: z.array(z.string()).optional(),
   })
   .superRefine((data, ctx) => {
     if (data.sharedWithUserId && data.externalContact) {
@@ -72,6 +74,33 @@ export const updateMonthlyBillSchema = z.object({
 });
 
 export type UpdateMonthlyBillInput = z.infer<typeof updateMonthlyBillSchema>;
+
+// ─── Tag schemas ──────────────────────────────────────────────────────────
+
+export const createTagSchema = z.object({
+  name: z.string().min(1, 'Name is required').max(30),
+  color: z.string().regex(/^#[0-9A-Fa-f]{6}$/, 'Color must be a hex value like #0891b2'),
+});
+
+export type CreateTagInput = z.infer<typeof createTagSchema>;
+
+export const updateTagSchema = z.object({
+  name: z.string().min(1).max(30).optional(),
+  color: z
+    .string()
+    .regex(/^#[0-9A-Fa-f]{6}$/, 'Color must be a hex value like #0891b2')
+    .optional(),
+});
+
+export type UpdateTagInput = z.infer<typeof updateTagSchema>;
+
+// ─── Reorder schema ───────────────────────────────────────────────────────
+
+export const reorderBillsSchema = z.object({
+  orderedIds: z.array(z.string()).min(1),
+});
+
+export type ReorderBillsInput = z.infer<typeof reorderBillsSchema>;
 
 // ─── Connection schemas ───────────────────────────────────────────────────
 
