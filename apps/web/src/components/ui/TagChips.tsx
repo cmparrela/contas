@@ -2,7 +2,13 @@
 
 import { useTags } from '@/lib/hooks/use-tags';
 
-export function TagChips({ tagIds }: { tagIds?: string[] }) {
+export function TagChips({
+  tagIds,
+  align = 'start',
+}: {
+  tagIds?: string[];
+  align?: 'start' | 'end';
+}) {
   const { data: tags } = useTags();
 
   if (!tagIds || tagIds.length === 0) return null;
@@ -14,7 +20,7 @@ export function TagChips({ tagIds }: { tagIds?: string[] }) {
   if (resolved.length === 0) return null;
 
   return (
-    <div className="mt-1 flex flex-wrap gap-1">
+    <div className={`mt-1 flex flex-wrap gap-1 ${align === 'end' ? 'justify-end' : ''}`}>
       {resolved.map((tag) => (
         <span
           key={tag._id}

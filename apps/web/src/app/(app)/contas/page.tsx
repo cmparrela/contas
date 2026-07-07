@@ -540,7 +540,6 @@ function ContasContent() {
                               {mb.bill?.where && (
                                 <p className="text-xs text-muted">{mb.bill.where}</p>
                               )}
-                              <TagChips tagIds={mb.bill?.tagIds} />
                             </div>
                           </div>
                           <div className="flex items-center gap-2">
@@ -548,6 +547,7 @@ function ContasContent() {
                               <p className="text-sm font-semibold text-foreground">
                                 {formatCurrency(mb.amount)}
                               </p>
+                              <TagChips tagIds={mb.bill?.tagIds} align="end" />
                             </div>
                             {mb.bill && (
                               <div className="flex gap-0.5 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
@@ -645,7 +645,6 @@ function ContasContent() {
                                 {mb.bill?.where && (
                                   <p className="text-xs text-muted">{mb.bill.where}</p>
                                 )}
-                                <TagChips tagIds={mb.bill?.tagIds} />
                               </div>
                             </div>
                             <div className="flex items-center gap-2">
@@ -653,6 +652,7 @@ function ContasContent() {
                                 <p className="text-sm font-semibold text-foreground">
                                   {formatCurrency(mb.amount)}
                                 </p>
+                                <TagChips tagIds={mb.bill?.tagIds} align="end" />
                               </div>
                               {mb.bill && (
                                 <div className="flex gap-0.5 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
