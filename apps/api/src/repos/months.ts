@@ -3,7 +3,7 @@ import { getDb } from '../db/mongo';
 import { buildMongoUpdate } from '../db/utils';
 
 export interface DbMonthlyBillSharedData {
-  otherUserId: ObjectId;
+  otherUserId?: ObjectId;
   otherAmount: number;
   otherPaidAt?: Date;
   payerConfirmedAt?: Date;
@@ -61,6 +61,44 @@ export async function update(
     { _id: id, userId },
     buildMongoUpdate(patch as Record<string, unknown>),
     { returnDocument: 'after' },
+  );
+}
+
+/**
+ * Propagates a bill's current amount/split to its not-yet-paid monthly instances
+ * from (fromYear, fromMonth) onward. Past and already-paid months are left untouched.
+ */
+export async function propagateAmountChange(
+  bill: {
+    _id: ObjectId;
+    amount?: number;
+    isShared: boolean;
+    sharedWithUserId?: ObjectId;
+    splitType?: 'half' | 'custom';
+    customSplitAmount?: number;
+  },
+  userId: ObjectId,
+  fromYear: number,
+  fromMonth: number,
+): Promise<void> {
+  const col = await getCollection();
+
+  const patch: Record<string, unknown> = { amount: bill.amount };
+  if (bill.isShared) {
+    patch['sharedData.otherAmount'] =
+      bill.splitType === 'custom' && bill.customSplitAmount !== undefined
+        ? bill.customSplitAmount
+        : (bill.amount ?? 0) / 2;
+  }
+
+  await col.updateMany(
+    {
+      billId: bill._id,
+      userId,
+      paidAt: { $exists: false },
+      $or: [{ year: { $gt: fromYear } }, { year: fromYear, month: { $gte: fromMonth } }],
+    },
+    buildMongoUpdate(patch),
   );
 }
 

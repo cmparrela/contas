@@ -20,7 +20,6 @@ import {
   MessageSquare,
   Pencil,
   Plus,
-  Share2,
   Trash2,
 } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -32,7 +31,12 @@ import { TagChips } from '@/components/ui/TagChips';
 import { capitalize, formatCurrency } from '@/lib/format';
 import { useBills, useDeleteBill, useReorderBills } from '@/lib/hooks/use-bills';
 import { useConnections } from '@/lib/hooks/use-connections';
-import { useMonth, useUpdateMonthlyBill } from '@/lib/hooks/use-month';
+import {
+  useConfirmSharedPayment,
+  useMarkSharedPaid,
+  useMonth,
+  useUpdateMonthlyBill,
+} from '@/lib/hooks/use-month';
 
 const PIX_KEY_STORAGE = 'contas:pixKey';
 
@@ -57,7 +61,7 @@ function buildGroupedMessage(
   pixKey: string,
   monthLabel: string,
 ): string {
-  const lines: string[] = [`*Contas compartilhadas — ${monthLabel}*\n`];
+  const lines: string[] = [`*Contas — ${monthLabel}*\n`];
 
   let totalOther = 0;
   for (const mb of mbs) {
@@ -75,7 +79,7 @@ function buildGroupedMessage(
   }
 
   lines.push(`\n─────────────────`);
-  lines.push(`Total a pagar: *${fmt(totalOther)}*`);
+  lines.push(`Total para cada um: *${fmt(totalOther)}*`);
   if (pixKey.trim()) lines.push(`PIX: \`${pixKey.trim()}\``);
   return lines.join('\n');
 }
@@ -290,6 +294,8 @@ function ContasContent() {
   const { data: billsData } = useBills();
   const { data: connectionsData } = useConnections();
   const updateMonthlyBill = useUpdateMonthlyBill(year, month);
+  const markSharedPaid = useMarkSharedPaid(year, month);
+  const confirmSharedPayment = useConfirmSharedPayment(year, month);
   const deleteBill = useDeleteBill();
   const reorderBills = useReorderBills();
 
@@ -632,7 +638,7 @@ function ContasContent() {
                                 {mb.paidAt ? (
                                   <CheckCircle2 className="h-5 w-5 text-positive" />
                                 ) : (
-                                  <Share2 className="h-5 w-5 text-primary" />
+                                  <Circle className="h-5 w-5 text-muted" />
                                 )}
                               </button>
                               <div>
@@ -686,20 +692,40 @@ function ContasContent() {
                             </div>
                           </div>
                           {mb.sharedData && (
-                            <div className="mt-3 flex gap-4 rounded-xl bg-surface-muted px-4 py-2 text-xs">
-                              <div className="flex items-center gap-1.5">
+                            <div
+                              className="mt-3 flex flex-wrap items-center gap-4 rounded-xl bg-surface-muted px-4 py-2 text-xs"
+                              onClick={(e) => e.stopPropagation()}
+                              onKeyDown={(e) => e.stopPropagation()}
+                            >
+                              <button
+                                type="button"
+                                onClick={() => markSharedPaid.mutate(mb.billId)}
+                                disabled={!!mb.sharedData.otherPaidAt || markSharedPaid.isPending}
+                                className="flex items-center gap-1.5 disabled:cursor-default"
+                              >
                                 {mb.sharedData.otherPaidAt ? (
                                   <CheckCircle2 className="h-3.5 w-3.5 text-positive" />
                                 ) : (
-                                  <Circle className="h-3.5 w-3.5 text-muted" />
+                                  <Circle className="h-3.5 w-3.5 text-muted transition-colors hover:text-primary" />
                                 )}
                                 <span className="text-muted">
                                   Parte deles: {formatCurrency(mb.sharedData.otherAmount)}
                                 </span>
-                              </div>
-                              {mb.sharedData.payerConfirmedAt && (
-                                <span className="text-positive">PIX confirmado</span>
-                              )}
+                              </button>
+
+                              {mb.sharedData.otherPaidAt &&
+                                (mb.sharedData.payerConfirmedAt ? (
+                                  <span className="text-positive">PIX confirmado</span>
+                                ) : (
+                                  <button
+                                    type="button"
+                                    onClick={() => confirmSharedPayment.mutate(mb.billId)}
+                                    disabled={confirmSharedPayment.isPending}
+                                    className="font-medium text-primary hover:underline"
+                                  >
+                                    Confirmar PIX recebido
+                                  </button>
+                                ))}
                             </div>
                           )}
                         </div>

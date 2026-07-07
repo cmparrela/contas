@@ -11,6 +11,14 @@ import * as monthsRepo from '../repos/months';
 
 const router = Router();
 
+function computeOtherAmount(
+  bill: Awaited<ReturnType<typeof billsRepo.listActiveByUser>>[number],
+): number {
+  return bill.splitType === 'custom' && bill.customSplitAmount !== undefined
+    ? bill.customSplitAmount
+    : (bill.amount ?? 0) / 2;
+}
+
 function buildMonthlyDoc(
   bill: Awaited<ReturnType<typeof billsRepo.listActiveByUser>>[number],
   userId: ObjectId,
@@ -18,14 +26,12 @@ function buildMonthlyDoc(
   month: number,
 ): Parameters<typeof monthsRepo.insertMany>[0][number] {
   const base = { billId: bill._id, userId, year, month, amount: bill.amount };
-  if (!bill.isShared || !bill.sharedWithUserId) return base;
+  if (!bill.isShared) return base;
 
-  const otherAmount =
-    bill.splitType === 'custom' && bill.customSplitAmount !== undefined
-      ? bill.customSplitAmount
-      : (bill.amount ?? 0) / 2;
-
-  return { ...base, sharedData: { otherUserId: bill.sharedWithUserId, otherAmount } };
+  return {
+    ...base,
+    sharedData: { otherUserId: bill.sharedWithUserId, otherAmount: computeOtherAmount(bill) },
+  };
 }
 
 async function ensureMonthInitialized(
@@ -40,14 +46,29 @@ async function ensureMonthInitialized(
 
   if (activeBills.length === 0) return existing;
 
-  const coveredIds = new Set(existing.map((mb) => mb.billId.toHexString()));
+  const billsById = new Map(activeBills.map((bill) => [bill._id.toHexString(), bill]));
+
+  // Backfill sharedData for bills that became shared (or were shared with an
+  // external contact) before this tracking existed on their monthly instance.
+  const reconciled = await Promise.all(
+    existing.map(async (mb) => {
+      const bill = billsById.get(mb.billId.toHexString());
+      if (!bill?.isShared || mb.sharedData) return mb;
+      const updated = await monthsRepo.update(mb._id, userId, {
+        sharedData: { otherUserId: bill.sharedWithUserId, otherAmount: computeOtherAmount(bill) },
+      });
+      return updated ?? mb;
+    }),
+  );
+
+  const coveredIds = new Set(reconciled.map((mb) => mb.billId.toHexString()));
   const missing = activeBills.filter((b) => !coveredIds.has(b._id.toHexString()));
 
-  if (missing.length === 0) return existing;
+  if (missing.length === 0) return reconciled;
 
   const newDocs = missing.map((bill) => buildMonthlyDoc(bill, userId, year, month));
   const created = await monthsRepo.insertMany(newDocs);
-  return [...existing, ...created];
+  return [...reconciled, ...created];
 }
 
 function makeSharedHandler(

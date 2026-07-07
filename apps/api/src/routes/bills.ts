@@ -5,6 +5,7 @@ import { parseId } from '../lib/parse-id';
 import { requireAuth } from '../middleware/requireAuth';
 import { validateBody } from '../middleware/validate';
 import * as billsRepo from '../repos/bills';
+import * as monthsRepo from '../repos/months';
 
 const router = Router();
 
@@ -111,6 +112,14 @@ router.put('/:id', requireAuth, validateBody(updateBillSchema), async (req, res,
     if (!bill) {
       res.status(404).json({ error: 'Not found' });
       return;
+    }
+
+    const amountFieldsChanged = ['amount', 'customSplitAmount', 'splitType'].some(
+      (key) => key in body,
+    );
+    if (amountFieldsChanged) {
+      const now = new Date();
+      await monthsRepo.propagateAmountChange(bill, userId, now.getFullYear(), now.getMonth() + 1);
     }
 
     res.json({ bill });

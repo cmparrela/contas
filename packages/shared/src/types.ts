@@ -53,7 +53,7 @@ export interface TagResponse {
 // ─── MonthlyBill ──────────────────────────────────────────────────────────
 
 export interface SharedDataResponse {
-  otherUserId: string;
+  otherUserId?: string;
   otherAmount: number;
   otherPaidAt?: string; // ISO date — when other person marked as paid
   payerConfirmedAt?: string; // ISO date — when payer confirmed receiving the PIX
