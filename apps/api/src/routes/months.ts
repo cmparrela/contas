@@ -109,6 +109,7 @@ router.get('/:year/:month', requireAuth, async (req, res, next) => {
         ...mb,
         bill: billMap.get(mb.billId.toHexString()),
       }))
+      .filter((mb) => mb.bill?.active !== false)
       .sort((a, b) => (a.bill?.order ?? 0) - (b.bill?.order ?? 0));
 
     res.json({ monthlyBills: result, year, month });
