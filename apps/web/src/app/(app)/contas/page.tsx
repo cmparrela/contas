@@ -600,11 +600,18 @@ function ContasContent() {
               {sharedGroups.map((group) => {
                 const groupedMsg = buildGroupedMessage(group.bills, pixKey, monthName);
                 const waUrl = group.phone ? buildWhatsAppUrl(group.phone, groupedMsg) : undefined;
+                const groupTotalOther = group.bills.reduce((sum, mb) => {
+                  const total = mb.amount ?? 0;
+                  return sum + (mb.sharedData?.otherAmount ?? total / 2);
+                }, 0);
 
                 return (
                   <div key={group.key}>
                     <div className="mb-2 flex items-center gap-2">
                       <span className="text-sm font-semibold text-foreground">{group.label}</span>
+                      <span className="text-xs text-muted">
+                        Total a receber: {formatCurrency(groupTotalOther)}
+                      </span>
                       <div className="ml-auto flex items-center gap-1.5">
                         <CopyButton text={groupedMsg} label="Copiar tudo" />
                         {waUrl && <WhatsAppButton url={waUrl} />}
