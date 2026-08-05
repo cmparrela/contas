@@ -306,6 +306,7 @@ function ContasContent() {
   const [deleteTarget, setDeleteTarget] = useState<BillResponse | null>(null);
   const [pixKey, setPixKey] = useState('');
   const [isBulkUpdating, setIsBulkUpdating] = useState(false);
+  const [receivingGroupKey, setReceivingGroupKey] = useState<string | null>(null);
   const [personalOrder, setPersonalOrder] = useState<string[]>([]);
 
   const dragSensors = useSensors(
@@ -410,6 +411,26 @@ function ContasContent() {
       );
     } finally {
       setIsBulkUpdating(false);
+    }
+  }
+
+  async function receiveAllForGroup(groupKey: string, bills: MonthlyBillResponse[]) {
+    const pending = bills.filter(
+      (mb) => mb.sharedData && (!mb.sharedData.otherPaidAt || !mb.sharedData.payerConfirmedAt),
+    );
+    if (pending.length === 0) return;
+    setReceivingGroupKey(groupKey);
+    try {
+      await Promise.all(
+        pending.map(async (mb) => {
+          if (!mb.sharedData?.otherPaidAt) {
+            await markSharedPaid.mutateAsync({ billId: mb.billId, value: true });
+          }
+          await confirmSharedPayment.mutateAsync({ billId: mb.billId, value: true });
+        }),
+      );
+    } finally {
+      setReceivingGroupKey(null);
     }
   }
 
@@ -604,6 +625,10 @@ function ContasContent() {
                   const total = mb.amount ?? 0;
                   return sum + (mb.sharedData?.otherAmount ?? total / 2);
                 }, 0);
+                const allReceived = group.bills.every(
+                  (mb) => mb.sharedData?.otherPaidAt && mb.sharedData?.payerConfirmedAt,
+                );
+                const isReceivingGroup = receivingGroupKey === group.key;
 
                 return (
                   <div key={group.key}>
@@ -613,6 +638,21 @@ function ContasContent() {
                         Total a receber: {formatCurrency(groupTotalOther)}
                       </span>
                       <div className="ml-auto flex items-center gap-1.5">
+                        {group.bills.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => receiveAllForGroup(group.key, group.bills)}
+                            disabled={allReceived || isReceivingGroup}
+                            className="btn-ghost gap-1.5 px-2.5 py-1 text-xs text-positive disabled:cursor-default disabled:opacity-60"
+                          >
+                            <CheckCircle2 size={13} />
+                            {isReceivingGroup
+                              ? 'Recebendo...'
+                              : allReceived
+                                ? 'Tudo recebido'
+                                : 'Receber tudo'}
+                          </button>
+                        )}
                         <CopyButton text={groupedMsg} label="Copiar para whatsapp" />
                         {waUrl && <WhatsAppButton url={waUrl} />}
                       </div>
