@@ -613,7 +613,7 @@ function ContasContent() {
                         Total a receber: {formatCurrency(groupTotalOther)}
                       </span>
                       <div className="ml-auto flex items-center gap-1.5">
-                        <CopyButton text={groupedMsg} label="Copiar tudo" />
+                        <CopyButton text={groupedMsg} label="Copiar para whatsapp" />
                         {waUrl && <WhatsAppButton url={waUrl} />}
                       </div>
                     </div>
