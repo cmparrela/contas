@@ -97,7 +97,9 @@ export default function TagsPage() {
         <ConfirmDialog
           message={`Apagar a tag "${deletingTag.name}"? Ela será removida de todas as contas que a usam.`}
           confirmLabel="Apagar"
+          isLoading={deleteTag.isPending}
           onConfirm={async () => {
+            if (deleteTag.isPending) return;
             await deleteTag.mutateAsync(deletingTag._id);
             setDeletingTag(undefined);
           }}

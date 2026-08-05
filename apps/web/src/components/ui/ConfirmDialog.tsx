@@ -1,6 +1,7 @@
 interface ConfirmDialogProps {
   message: string;
   confirmLabel?: string;
+  isLoading?: boolean;
   onConfirm: () => void;
   onCancel: () => void;
 }
@@ -8,6 +9,7 @@ interface ConfirmDialogProps {
 export function ConfirmDialog({
   message,
   confirmLabel = 'Confirmar',
+  isLoading = false,
   onConfirm,
   onCancel,
 }: ConfirmDialogProps) {
@@ -16,11 +18,11 @@ export function ConfirmDialog({
       <div className="card flex w-full max-w-sm flex-col gap-5 p-6">
         <p className="text-sm text-foreground">{message}</p>
         <div className="flex justify-end gap-2">
-          <button type="button" onClick={onCancel} className="btn-ghost">
+          <button type="button" onClick={onCancel} disabled={isLoading} className="btn-ghost">
             Cancelar
           </button>
-          <button type="button" onClick={onConfirm} className="btn-danger">
-            {confirmLabel}
+          <button type="button" onClick={onConfirm} disabled={isLoading} className="btn-danger">
+            {isLoading ? 'Removendo...' : confirmLabel}
           </button>
         </div>
       </div>

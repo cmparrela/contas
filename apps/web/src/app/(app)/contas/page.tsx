@@ -783,7 +783,9 @@ function ContasContent() {
         <ConfirmDialog
           message={`Remover "${deleteTarget.name}"? Isso afeta todos os meses.`}
           confirmLabel="Remover"
+          isLoading={deleteBill.isPending}
           onConfirm={async () => {
+            if (deleteBill.isPending) return;
             await deleteBill.mutateAsync(deleteTarget._id);
             setDeleteTarget(null);
           }}
